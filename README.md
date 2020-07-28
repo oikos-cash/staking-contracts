@@ -1,8 +1,8 @@
-# staking-contracts
+# Staking-contracts
 
 Staking OKS is a fairly complicated process with numerous strategies to optimise yield and reduce risk. 
 
-The effort and skill required to optimally stake SNX presents an opportunity for staking pools managed by community members with fee structures based on performance. This is a fully decentralized non-custodial staking pool were all fund movements will be defined through smart contracts logic. 
+The effort and skill required to optimally stake OKS presents an opportunity for staking pools managed by community members with fee structures based on performance. This is a fully decentralized non-custodial staking pool were all fund movements will be defined through smart contracts logic. 
 
 Users not familliar with OKS ecosystem will have to stake their OKS in one of the deployed pools and the mangers will handle the strategies to optimize the yields.
 
@@ -14,4 +14,4 @@ The pool managers will be able to
 - Collect & distribute fees
 - Deposit to AMM pools
 - Call exchange
-- Set fee structure % of fees, or % of SNX staked or some combination of the two
+- Set fee structure % of fees, or % of OKS staked or some combination of the two
