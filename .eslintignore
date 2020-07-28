@@ -1,0 +1,11 @@
+
+build
+contracts
+coverage
+node_modules
+
+package.json
+coverage.json
+.soliumrc.json
+package-lock.json
+
