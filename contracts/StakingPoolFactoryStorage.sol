@@ -12,12 +12,18 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
     address[] private stakingPools;
     address private oks;
 
-    constructor(address _oks) public {
+    constructor(address _oks)
+        public
+        Owned(msg.sender)
+    {
         require(_oks != address(0), "StakingPoolFactoryStorage: OKS is zero address");
         oks = _oks;
     }
 
-    function setOKS(address _oks) public onlyOwner {
+    function setOKS(address _oks)
+        public
+        onlyOwner
+    {
         require(_oks != address(0), "StakingPoolFactoryStorage: OKS is zero address");
         oks = _oks;
     }
@@ -48,9 +54,8 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
         stakingPoolIndex[_pool] = 0;
         stakingPools[index-1] = lastPool;
         stakingPoolIndex[lastPool] = index;
-
-        stakingPools.length = length - 1;
         delete stakingPools[length-1];
+        stakingPools.length = length - 1;
     }
 
     function getStakingPools() public view returns(address[] memory) {
@@ -58,10 +63,12 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
     }
 
     function getStakingPool(uint256 _index) public view returns(address) {
+        require(_index < stakingPools.length, "StakingPoolFactoryStorage: index out of bound");
         return stakingPools[_index];
     }
 
     function getStakingPoolIndex(address _pool) public view returns(uint256) {
+        require(stakingPoolIndex[_pool] != 0, "StakingPoolFactoryStorage: pool is not listed");
         return stakingPoolIndex[_pool] - 1;
     }
 }
