@@ -14,16 +14,16 @@ const StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage")
 
 
 contract("StakingPoolFactoryStorage", (accounts) => {
-	const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-	const admin = accounts[0];
-	const user1 = accounts[1];
-	const oks = accounts[2];
-	const oks2 = accounts[3];
+    const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const admin = accounts[0];
+    const user1 = accounts[1];
+    const oks = accounts[2];
+    const oks2 = accounts[3];
     const sp1 = accounts[4];
     const sp2 = accounts[5];
     const sp3 = accounts[6];
 
-	beforeEach(async () => {
+    beforeEach(async () => {
         this.spfs = await StakingPoolFactoryStorage.new(oks, { from: admin });
     });
 
@@ -154,7 +154,7 @@ contract("StakingPoolFactoryStorage", (accounts) => {
         await this.spfs.removeStakingPool(sp2, {from: admin});
         chai.expect( (await this.spfs.getStakingPools()).length).to.be.equal(1);
         chai.expect(await this.spfs.getStakingPool(0)).to.be.equal(sp3);
-        chai.expect(await this.spfs.getStakingPoolIndex(sp3)).to.be.bignumber.equal('0');
+        chai.expect(await this.spfs.getStakingPoolIndex(sp3)).to.be.bignumber.equal("0");
         await this.spfs.removeStakingPool(sp3, {from: admin});
         chai.expect( (await this.spfs.getStakingPools()).length).to.be.equal(0);
 
