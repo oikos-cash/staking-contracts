@@ -4,8 +4,6 @@ import "./utility/Owned.sol";
 import "./interfaces/IStakingPoolFactoryStorage.sol";
 
 
-// TO DO: cross check index values
-
 contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
 
     mapping(address => uint256) private stakingPoolIndex;

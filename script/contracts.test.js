@@ -1,6 +1,5 @@
 
 require("./lptoken.test.js");
 require("./vault.test.js");
-require("./sp.test.js");
-require("./spf.test.js");
+require("./upgradability.test.js");
 require("./spfs.test.js");

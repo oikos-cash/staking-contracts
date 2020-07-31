@@ -1,19 +1,19 @@
 pragma solidity ^0.5.0;
 
-import "./utility/SafeMath.sol";
-import "./utility/Owned.sol";
-import "./utility/TokenHandler.sol";
+import "../utility/SafeMath.sol";
+import "../utility/Owned.sol";
+import "../utility/TokenHandler.sol";
 
-import "./interfaces/ILPToken.sol";
-import "./interfaces/IVault.sol";
-import "./interfaces/IERC20.sol";
-import "./interfaces/IStakingPool.sol";
-import "./interfaces/IOwned.sol";
-import "./interfaces/ISynthetix.sol";
-import "./interfaces/IProxy.sol";
+import "../interfaces/ILPToken.sol";
+import "../interfaces/IVault.sol";
+import "../interfaces/IERC20.sol";
+import "../interfaces/IStakingPool.sol";
+import "../interfaces/IOwned.sol";
+import "../interfaces/ISynthetix.sol";
+import "../interfaces/IProxy.sol";
 
 
-contract StakingPool is IStakingPool, TokenHandler, Owned {
+contract StakingPoolMock is IStakingPool, TokenHandler, Owned {
 
     using SafeMath for uint256;
     string public name;
@@ -26,7 +26,7 @@ contract StakingPool is IStakingPool, TokenHandler, Owned {
     address public oldAddress; // previous staking pool version address, if the address equal zero then it is the initial version
     address public newAddress; // previous staking pool version
     address public stakingPoolFactory;
-    uint256 private version = 1;
+    uint256 private version = 2;
 
     constructor(
         string memory _name,
@@ -116,4 +116,27 @@ contract StakingPool is IStakingPool, TokenHandler, Owned {
     }
 }
 
+// pragma solidity ^0.5.0;
 
+// import "../StakingPool.sol";
+
+
+// contract StakingPoolMock is StakingPool {
+
+//     constructor(
+//         string memory _name,
+//         address _spf, // staking pool factory proxy address
+//         address _oldAddress, // previous staking pool version address, if the address equal zero then it is the initial version
+//         address _vault,
+//         address _lpToken,
+//         address _oks,
+//         address _owner
+//     )
+//      public
+//      StakingPool(_name, _spf, _oldAddress, _vault, _lpToken, _oks, _owner)
+//     {
+//     }
+//     function getVersionV2() public view returns(uint256) {
+//         return getVersion() + 1;
+//     }
+// }

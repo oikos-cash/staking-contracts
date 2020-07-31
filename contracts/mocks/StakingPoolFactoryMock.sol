@@ -1,19 +1,19 @@
+
 pragma solidity ^0.5.0;
 
-import "./utility/Proxyable.sol";
-import "./StakingPool.sol";
+import "../utility/Proxyable.sol";
+import "../mocks/StakingPoolMock.sol";
 
-import "./interfaces/IVault.sol";
-import "./interfaces/IOwned.sol";
-import "./interfaces/ILPToken.sol";
-import "./interfaces/IStakingPoolFactory.sol";
-import "./interfaces/IStakingPoolFactoryStorage.sol";
+import "../interfaces/IVault.sol";
+import "../interfaces/IOwned.sol";
+import "../interfaces/ILPToken.sol";
+import "../interfaces/IStakingPoolFactory.sol";
+import "../interfaces/IStakingPoolFactoryStorage.sol";
 
 
+contract StakingPoolFactoryMock is IStakingPoolFactory, Proxyable {
 
-contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
-
-    uint256 private version = 1;
+    uint256 private version = 2;
     bool public upgraded = false;
     IStakingPoolFactoryStorage public factoryStorage;
 
@@ -41,11 +41,11 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         address _lpToken,
         address _owner
     )
-    	public
+        public
         isNotUpgraded
-    	optionalProxy_onlyOwner
+        optionalProxy_onlyOwner
     {
-        StakingPool stakingPool = StakingPool(
+        StakingPoolMock stakingPool = StakingPoolMock(
             createStakingPool(
                 _name,
                 address(this),
@@ -72,8 +72,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
         factoryStorage.getStakingPoolIndex(_pool);
 
-        StakingPool oldPool = StakingPool(_pool);
-        StakingPool newPool = StakingPool(
+        StakingPoolMock oldPool = StakingPoolMock(_pool);
+        StakingPoolMock newPool = StakingPoolMock(
             createStakingPool(
                 oldPool.name(),
                 _pool,
@@ -129,7 +129,7 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         returns (address payable)
     {
         return address(
-            new StakingPool(
+            new StakingPoolMock(
                 _name,
                 address(proxy),
                 _oldPool,
@@ -141,3 +141,42 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         );
     }
 }
+// pragma solidity ^0.5.0;
+
+// import "../StakingPoolFactory.sol";
+// import "./StakingPoolMock.sol";
+
+
+// contract StakingPoolFactoryMock is StakingPoolFactory {
+
+//     constructor(
+//      address _factoryStorage, // Staking pool factory storage
+//      address payable _proxy, // Staking pool factory proxy
+//      address _owner // Staking pool factory owner address
+//     )
+//      public
+//      StakingPoolFactory(_factoryStorage, _proxy, _owner)
+//     {
+//     }
+
+//     function getVersion() public view returns(uint256) {
+//         return super.getVersion() + 1;
+//     }
+
+//     function createStakingPool(
+//         string memory _name,
+//         address _vault,
+//         address _lpToken,
+//         address _owner
+//     ) internal returns (address payable) {
+//         return address(new StakingPoolMock(
+//             _name,
+//             address(proxy),
+//             address(this),
+//             _vault,
+//             _lpToken,
+//             factoryStorage.getOKS(),
+//             _owner
+//         ));
+//     }
+// }

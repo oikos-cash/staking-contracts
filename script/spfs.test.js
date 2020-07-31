@@ -12,7 +12,6 @@ chai.use(require("chai-bn")(BN));
 
 const StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage");
 
-
 contract("StakingPoolFactoryStorage", (accounts) => {
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const admin = accounts[0];
@@ -26,7 +25,6 @@ contract("StakingPoolFactoryStorage", (accounts) => {
     beforeEach(async () => {
         this.spfs = await StakingPoolFactoryStorage.new(oks, { from: admin });
     });
-
 
     it("Deploy contract with OKS as zero address", async () => {
         await expectRevert(
@@ -124,7 +122,6 @@ contract("StakingPoolFactoryStorage", (accounts) => {
             "StakingPoolFactoryStorage: pool is not listed"
         );
     });
-
 
     it("removing staking pool with non-owner", async () => {
         await this.spfs.addStakingPool(sp1, {from: admin});
