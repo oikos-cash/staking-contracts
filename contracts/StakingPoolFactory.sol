@@ -1,22 +1,19 @@
 pragma solidity ^0.5.0;
 
+import "./interfaces/IStakingPoolFactoryStorage.sol";
+import "./interfaces/IStakingPoolFactory.sol";
+import "./interfaces/IOwned.sol";
+
 import "./utility/Proxyable.sol";
 import "./StakingPool.sol";
-
-import "./interfaces/IVault.sol";
-import "./interfaces/IOwned.sol";
-import "./interfaces/ILPToken.sol";
-import "./interfaces/IStakingPoolFactory.sol";
-import "./interfaces/IStakingPoolFactoryStorage.sol";
-
 
 
 contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
-    uint256 private version = 1;
-    bool public upgraded = false;
+    uint256 internal version = 1;
+    bool internal upgraded = false;
 
-    IStakingPoolFactoryStorage public factoryStorage;
+    IStakingPoolFactoryStorage internal factoryStorage;
 
     constructor(
         address _factoryStorage, // Staking pool factory storage
@@ -39,8 +36,7 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         string memory _name,
         address _vault,
         address _lpToken,
-        address _owner,
-        address _rewardDistributionAddr
+        address _owner
     )
     	public
         isNotUpgraded
@@ -52,13 +48,12 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 address(this),
                 _vault,
                 _lpToken,
-                _owner,
-                _rewardDistributionAddr
+                _owner
             )
         );
 
-        IVault(_vault).nominateNewOwner(address(stakingPool));
-        ILPToken(_lpToken).nominateNewOwner(address(stakingPool));
+        IOwned(_vault).nominateNewOwner(address(stakingPool));
+        IOwned(_lpToken).nominateNewOwner(address(stakingPool));
 
         stakingPool.acceptOwnership(_vault);
         stakingPool.acceptOwnership(_lpToken);
@@ -66,17 +61,12 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         factoryStorage.addStakingPool(address(stakingPool));
     }
 
-    function upgradeStakingPool(
-        address payable _pool,
-        address _rewardDistributionAddr
-    )
+    function upgradeStakingPool(address payable _pool)
         public
         isNotUpgraded
         optionalProxy_onlyOwner
     {
-
-        factoryStorage.getStakingPoolIndex(_pool);
-
+        require(factoryStorage.removeStakingPool(_pool), "StakingPoolFactory: pool not deleted from factory storage");
         StakingPool oldPool = StakingPool(_pool);
         StakingPool newPool = StakingPool(
             createStakingPool(
@@ -84,13 +74,11 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 _pool,
                 address(oldPool.getVault()),
                 address(oldPool.getLPToken()),
-                oldPool.owner(),
-                _rewardDistributionAddr
+                oldPool.owner()
             )
         );
         oldPool.upgrade(address(newPool));
-        factoryStorage.removeStakingPool(address(oldPool));
-        factoryStorage.addStakingPool(address(newPool));
+        require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
     }
 
     function disableStakingPool(/*address payable _pool*/)
@@ -107,8 +95,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         optionalProxy_onlyOwner
     {
         require(_facotry != address(0), "StakingPoolFactory: FACTORY is zero address");
-        require(IStakingPoolFactory(_facotry).getVersion() > version, "StakingPoolFactory: pool factory version has to be higher");
-        Owned(address(factoryStorage)).nominateNewOwner(_facotry);
+        require(StakingPoolFactory(_facotry).getVersion() > version, "StakingPoolFactory: pool factory version has to be higher");
+        IOwned(address(factoryStorage)).nominateNewOwner(_facotry);
         upgraded = true;
     }
 
@@ -120,17 +108,12 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         IOwned(_addr).acceptOwnership();
     }
 
-    function getVersion() public view returns(uint256) {
-        return version;
-    }
-
     function createStakingPool(
         string memory _name,
         address _oldPool,
         address _vault,
         address _lpToken,
-        address _owner,
-        address _rewardDistributionAddr
+        address _owner
     )
         internal
         returns (address payable)
@@ -143,9 +126,17 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 _vault,
                 _lpToken,
                 factoryStorage.getOKS(),
-                _owner,
-                _rewardDistributionAddr
+                1,
+                _owner
             )
         );
     }
-}
+
+    function getVersion() public view returns(uint256) {
+        return version;
+    }
+
+    function getFactoryStorage() public view returns(address) {
+        return address(factoryStorage);
+    }
+}   

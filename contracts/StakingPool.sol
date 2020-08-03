@@ -1,18 +1,17 @@
 pragma solidity ^0.5.0;
 
 import "./utility/SafeMath.sol";
-import "./utility/Owned.sol";
 import "./utility/TokenHandler.sol";
 
 import "./interfaces/IVault.sol";
+import "./interfaces/IProxy.sol";
 import "./interfaces/IStakingPool.sol";
 import "./interfaces/IOwned.sol";
-import "./interfaces/IProxy.sol";
 
 import "./DSA.sol";
 
 
-contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
+contract StakingPool is IStakingPool, TokenHandler, DSA{
 
     using SafeMath for uint256;
     string public name;
@@ -21,36 +20,31 @@ contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
 
     address public oldAddress; // previous staking pool version address, if the address equal zero then it is the initial version
     address public newAddress; // previous staking pool version
-    address public stakingPoolFactory;
     uint256 private version = 1;
 
     constructor(
         string memory _name,
-        address _spf, // staking pool factory proxy address
+        address _stakingPoolFactory, // staking pool factory proxy address
         address _oldAddress, // previous staking pool version address, if the address equal zero then it is the initial version
         address _vault,
         address _lpToken,
         address _oks,
-        address _owner,
-        address _rewardDistributionAddr
+        uint256 _version,
+        address _owner
     ) 
         public 
         DSA(
             _oks,
             _lpToken,
             _owner,
-            _rewardDistributionAddr
+            _stakingPoolFactory
         )
     {
-        require(_spf != address(0), "StakingPool: staking pool factory is zero address");
         require(_vault != address(0), "StakingPool: vault is zero address");
-
         name = _name;
         vault = IVault(_vault);
         oldAddress = _oldAddress;
-        stakingPoolFactory = _spf;
-        oks = ISynthetix(_oks);
-        exchangeRate = 10**18;
+        version = _version;
     }
 
     function() external payable {
@@ -73,7 +67,7 @@ contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
     }
 
     modifier isStakingPoolFactory() {
-        require(msg.sender == IProxy(stakingPoolFactory).target(), "StakingPool: only staking pool factory is allowed");
+        require(msg.sender == IProxy(address(stakingPoolFactory)).target(), "StakingPool: only staking pool factory is allowed");
         _;
     }
 
@@ -81,15 +75,16 @@ contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
         return version;
     }
 
-    function upgrade(address _stakingPool) public isStakingPoolFactory {
+    function upgrade(address payable _stakingPool) public isStakingPoolFactory {
+        IStakingPool sp = IStakingPool(_stakingPool);
         require(newAddress == address(0), "StakingPool: contract already upgraded");
-        require(IStakingPool(_stakingPool).getVersion() > version, "StakingPool: staking pool version has to be higher");
+        require(sp.getVersion() > version, "StakingPool: staking pool version has to be higher");
         newAddress = _stakingPool;
         IOwned(address(vault)).nominateNewOwner(_stakingPool);
         IOwned(address(lpToken)).nominateNewOwner(_stakingPool);
-        IStakingPool(_stakingPool).acceptOwnership(address(vault));
-        IStakingPool(_stakingPool).acceptOwnership(address(lpToken));
-        IStakingPool(_stakingPool).setExchangeRate(exchangeRate);
+        sp.acceptOwnership(address(vault));
+        sp.acceptOwnership(address(lpToken));
+        sp.setExchangeRate(exchangeRate);
     }
 
     function transferTokenBalance(address _token) public isUpgraded {
@@ -113,5 +108,3 @@ contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
         return address(vault);
     }
 }
-
-

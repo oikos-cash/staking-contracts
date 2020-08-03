@@ -33,15 +33,18 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
     function addStakingPool(address _pool)
         public
         onlyOwner
+        returns(bool)
     {
         require(_pool != (address(0)), "StakingPoolFactoryStorage: pool is zero address");
         stakingPools.push(_pool);
         stakingPoolIndex[_pool] = stakingPools.length;
+        return true;
     }
 
     function removeStakingPool(address _pool)
         public
         onlyOwner
+        returns(bool)
     {
         uint index = stakingPoolIndex[_pool];
         require(index != 0, "StakingPoolFactoryStorage: pool is not listed");
@@ -54,6 +57,7 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
         stakingPoolIndex[lastPool] = index;
         delete stakingPools[length-1];
         stakingPools.length = length - 1;
+        return true;
     }
 
     function getStakingPools() public view returns(address[] memory) {

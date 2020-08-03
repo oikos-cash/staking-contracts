@@ -3,8 +3,12 @@ pragma solidity ^0.5.0;
 import "./utility/SafeMath.sol";
 import "./utility/Owned.sol";
 
+import "./interfaces/IFeePool.sol";
+import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/ILPToken.sol";
 import "./interfaces/ISynthetix.sol";
+import "./interfaces/IStakingPoolFactory.sol";
+import "./interfaces/IStakingPoolFactoryStorage.sol";
 import "./interfaces/IRewardDistributionRecipient.sol";
 
 
@@ -14,7 +18,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
     ILPToken internal lpToken;
     ISynthetix internal oks;
 
-    address internal rewardDistributionAddr;
+    IStakingPoolFactory public stakingPoolFactory;
 
     uint256 internal exchangeRate;
     uint256 internal denominator;
@@ -28,12 +32,12 @@ contract DSA is Owned, IRewardDistributionRecipient {
         address _oks,
         address _lpToken,
         address _owner,
-        address _rewardDistributionAddr
+        address _stakingPoolFactory
     )
         public
         Owned(_owner)
     {
-        require(_rewardDistributionAddr != address(0), "DSA: reward distribution is zero address");
+        require(_stakingPoolFactory != address(0), "DSA: reward distribution is zero address");
         require(_lpToken != address(0), "DSA: LPToken is zero address");
         require(_oks != address(0), "DSA: OKS is zero address");
 
@@ -43,7 +47,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
         denominator =  10**18;
         lastUpdate = block.timestamp;
         lastExRateUpdate = block.timestamp;
-        rewardDistributionAddr = _rewardDistributionAddr;
+        stakingPoolFactory = IStakingPoolFactory(_stakingPoolFactory);
     }
 
     modifier updateExchangeRate() {
@@ -60,16 +64,11 @@ contract DSA is Owned, IRewardDistributionRecipient {
     }
 
     modifier onlyRewardDistribution() {
-        require(msg.sender == rewardDistributionAddr, "DSA: only reward distribution contract is allowed");
+        require(
+            msg.sender == oks.rewardsDistribution(),
+            "DSA: only reward distribution contract is allowed"
+        );
         _;
-    }
-
-    function setRewardDistributionAddress(address _rewardDistributionAddr) 
-        public
-        onlyOwner
-    {
-        require(_rewardDistributionAddr != address(0), "DSA: reward distribution is zero address");
-        rewardDistributionAddr = _rewardDistributionAddr;
     }
     
     function stake(uint256 _amount)
@@ -112,6 +111,17 @@ contract DSA is Owned, IRewardDistributionRecipient {
             rewardLeft = m_rewardLeft;
         }
         lastUpdate = block.timestamp;
+    }
+
+    function claimFees() public {
+        IFeePool(oks.feePool()).claimFees();
+    }
+
+    function withdrawEscrowedReward() public {
+        uint256 balance = oks.balanceOf(address(this));
+        IRewardEscrow(oks.rewardEscrow()).vest();
+        uint256 reward = oks.balanceOf(address(this)).sub(balance);
+        _notifyRewardAmount(reward);
     }
 
     function getLPToken() public view returns(address) {

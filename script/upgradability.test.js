@@ -13,7 +13,6 @@ chai.use(require("chai-bn")(BN));
 const Vault = artifacts.require("Vault");
 const LPToken = artifacts.require("LPToken");
 const StakingPool = artifacts.require("StakingPool");
-const StakingPoolV2 = artifacts.require("StakingPoolMock");
 const ProxyContract = artifacts.require("Proxy");
 const StakingPoolFactory = artifacts.require("StakingPoolFactory");
 const StakingPoolFactoryV2 = artifacts.require("StakingPoolFactoryMock");

@@ -4,7 +4,7 @@ pragma solidity ^0.5.0;
 
 interface IStakingPool {
 
-    function upgrade(address _stakingPool) external;
+    function upgrade(address payable _stakingPool) external;
     function transferTokenBalance(address _token) external;
     function transferTrxBalance() external;
 	function acceptOwnership(address _addr) external;

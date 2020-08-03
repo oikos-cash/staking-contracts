@@ -21,6 +21,7 @@ contract("StakingPoolFactoryStorage", (accounts) => {
     const sp1 = accounts[4];
     const sp2 = accounts[5];
     const sp3 = accounts[6];
+    const rewardDistributor = accounts[7];
 
     beforeEach(async () => {
         this.spfs = await StakingPoolFactoryStorage.new(oks, { from: admin });
