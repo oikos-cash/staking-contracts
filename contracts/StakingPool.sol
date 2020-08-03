@@ -4,25 +4,21 @@ import "./utility/SafeMath.sol";
 import "./utility/Owned.sol";
 import "./utility/TokenHandler.sol";
 
-import "./interfaces/ILPToken.sol";
 import "./interfaces/IVault.sol";
-import "./interfaces/IERC20.sol";
 import "./interfaces/IStakingPool.sol";
 import "./interfaces/IOwned.sol";
-import "./interfaces/ISynthetix.sol";
 import "./interfaces/IProxy.sol";
 
+import "./DSA.sol";
 
-contract StakingPool is IStakingPool, TokenHandler, Owned {
+
+contract StakingPool is IStakingPool, TokenHandler, Owned, DSA{
 
     using SafeMath for uint256;
     string public name;
 
     IVault private vault;
-    ILPToken private lpToken;
-    ISynthetix public oks;
 
-    uint256 public exchangeRate;
     address public oldAddress; // previous staking pool version address, if the address equal zero then it is the initial version
     address public newAddress; // previous staking pool version
     address public stakingPoolFactory;
@@ -35,16 +31,22 @@ contract StakingPool is IStakingPool, TokenHandler, Owned {
         address _vault,
         address _lpToken,
         address _oks,
-        address _owner) public Owned(_owner)
+        address _owner,
+        address _rewardDistributionAddr
+    ) 
+        public 
+        DSA(
+            _oks,
+            _lpToken,
+            _owner,
+            _rewardDistributionAddr
+        )
     {
         require(_spf != address(0), "StakingPool: staking pool factory is zero address");
         require(_vault != address(0), "StakingPool: vault is zero address");
-        require(_lpToken != address(0), "StakingPool: LPToken is zero address");
-        require(_oks != address(0), "StakingPool: OKS is zero address");
 
         name = _name;
         vault = IVault(_vault);
-        lpToken = ILPToken(_lpToken);
         oldAddress = _oldAddress;
         stakingPoolFactory = _spf;
         oks = ISynthetix(_oks);
@@ -91,7 +93,7 @@ contract StakingPool is IStakingPool, TokenHandler, Owned {
     }
 
     function transferTokenBalance(address _token) public isUpgraded {
-        _safeTransfer(_token, newAddress, IERC20(_token).balanceOf(address(this)));
+        _safeTransfer(_token, newAddress, ILPToken(_token).balanceOf(address(this)));
     }
 
     function transferTrxBalance() public isUpgraded {
@@ -109,10 +111,6 @@ contract StakingPool is IStakingPool, TokenHandler, Owned {
 
     function getVault() public view returns(address) {
         return address(vault);
-    }
-
-    function getLPToken() public view returns(address) {
-        return address(lpToken);
     }
 }
 

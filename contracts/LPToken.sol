@@ -35,7 +35,6 @@ contract LPToken is ILPToken, ERC20, Owned {
     function mint(address account, uint256 value) public onlyOwner returns(bool) {
         _mint(account, value);
         return true;
-
     }
 
     function burn(address account, uint256 value) public onlyOwner returns(bool) {

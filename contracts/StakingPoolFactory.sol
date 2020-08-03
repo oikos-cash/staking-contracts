@@ -15,8 +15,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
     uint256 private version = 1;
     bool public upgraded = false;
-    IStakingPoolFactoryStorage public factoryStorage;
 
+    IStakingPoolFactoryStorage public factoryStorage;
 
     constructor(
         address _factoryStorage, // Staking pool factory storage
@@ -39,7 +39,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         string memory _name,
         address _vault,
         address _lpToken,
-        address _owner
+        address _owner,
+        address _rewardDistributionAddr
     )
     	public
         isNotUpgraded
@@ -51,7 +52,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 address(this),
                 _vault,
                 _lpToken,
-                _owner
+                _owner,
+                _rewardDistributionAddr
             )
         );
 
@@ -64,7 +66,10 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         factoryStorage.addStakingPool(address(stakingPool));
     }
 
-    function upgradeStakingPool(address payable _pool)
+    function upgradeStakingPool(
+        address payable _pool,
+        address _rewardDistributionAddr
+    )
         public
         isNotUpgraded
         optionalProxy_onlyOwner
@@ -79,7 +84,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 _pool,
                 address(oldPool.getVault()),
                 address(oldPool.getLPToken()),
-                oldPool.owner()
+                oldPool.owner(),
+                _rewardDistributionAddr
             )
         );
         oldPool.upgrade(address(newPool));
@@ -123,7 +129,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         address _oldPool,
         address _vault,
         address _lpToken,
-        address _owner
+        address _owner,
+        address _rewardDistributionAddr
     )
         internal
         returns (address payable)
@@ -136,7 +143,8 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
                 _vault,
                 _lpToken,
                 factoryStorage.getOKS(),
-                _owner
+                _owner,
+                _rewardDistributionAddr
             )
         );
     }
