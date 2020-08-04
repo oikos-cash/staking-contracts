@@ -109,6 +109,18 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         IOwned(_addr).acceptOwnership();
     }
 
+    function getVersion() public view returns(uint256) {
+        return version;
+    }
+
+    function getFactoryStorage() public view returns(address) {
+        return address(factoryStorage);
+    }
+
+    function getStakingPools() public view returns(address[] memory) {
+        return factoryStorage.getStakingPools();
+    }
+
     function createStakingPool(
         string memory _name,
         address _oldPool,
@@ -132,16 +144,4 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
             )
         );
     }
-
-    function getVersion() public view returns(uint256) {
-        return version;
-    }
-
-    function getFactoryStorage() public view returns(address) {
-        return address(factoryStorage);
-    }
-
-    function getStakingPools() public view returns(address[] memory) {
-        return factoryStorage.getStakingPools();
-    }
-}   
+}

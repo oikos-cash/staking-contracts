@@ -49,7 +49,7 @@ contract("StakingPoolFactory", (accounts) => {
 
     it("Test state variable", async () => {
         chai.expect(await this.proxy.target()).to.be.equal(this.stakingPoolFactory.address);
-        chai.expect(await this.stakingPoolFactory.getVersion()).to.be.bignumber.equal('1');
+        chai.expect(await this.stakingPoolFactory.getVersion()).to.be.bignumber.equal("1");
         chai.expect(await this.stakingPoolFactory.getFactoryStorage()).to.be.equal(this.stakingPoolFactoryStorage.address);
         chai.expect((await this.stakingPoolFactory.getStakingPools()).length).to.be.equal(1);
 
@@ -151,7 +151,7 @@ contract("StakingPoolFactory", (accounts) => {
         );
     });
 
-     it("Upgrading staking pool by owner using proxy", async () => {
+    it("Upgrading staking pool by owner using proxy", async () => {
 
         let stakingPoolFactoryV2 = await StakingPoolFactoryV2.new(await this.stakingPoolFactory.getFactoryStorage(), this.proxy.address, admin, {from: admin});
         await this.stakingPoolFactoryProxy.upgradeFactory(stakingPoolFactoryV2.address, {from: admin});

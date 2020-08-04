@@ -10,7 +10,7 @@ contract StakingPoolFactoryMock is StakingPoolFactory {
         address _factoryStorage, // Staking pool factory storage
         address payable _proxy, // Staking pool factory proxy
         address _owner // Staking pool factory owner address
-    ) 
+    )
         public
         StakingPoolFactory(_factoryStorage, _proxy, _owner)
     {

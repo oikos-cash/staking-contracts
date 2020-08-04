@@ -14,7 +14,7 @@ import "./interfaces/IRewardDistributionRecipient.sol";
 
 contract DSA is Owned, IRewardDistributionRecipient {
 
-	using SafeMath for uint256;
+    using SafeMath for uint256;
     ILPToken internal lpToken;
     ISynthetix internal oks;
 
@@ -44,7 +44,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
         lpToken = ILPToken(_lpToken);
         oks = ISynthetix(_oks);
         exchangeRate = 10**18;
-        denominator =  10**18;
+        denominator = 10**18;
         lastUpdate = block.timestamp;
         lastExRateUpdate = block.timestamp;
         stakingPoolFactory = IStakingPoolFactory(_stakingPoolFactory);
@@ -52,7 +52,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
 
     modifier updateExchangeRate() {
         uint256 intervalReward = rewardPerSec.mul(block.timestamp.sub(lastExRateUpdate));
-        if(intervalReward > rewardLeft) {
+        if (intervalReward > rewardLeft) {
             intervalReward = rewardLeft;
             rewardLeft = 0;
         } else {
@@ -70,23 +70,23 @@ contract DSA is Owned, IRewardDistributionRecipient {
         );
         _;
     }
-    
+
     function stake(uint256 _amount)
     	public
     	updateExchangeRate
     {
-    	require(oks.transferFrom(msg.sender,address(this),_amount), "DSA: OKS deposit failed");
-    	uint256 amountToMint = _amount.mul(denominator).div(exchangeRate);
-    	require(lpToken.mint(msg.sender, amountToMint), "DSA: cannot mint LP tokens");
+        require(oks.transferFrom(msg.sender,address(this),_amount), "DSA: OKS deposit failed");
+        uint256 amountToMint = _amount.mul(denominator).div(exchangeRate);
+        require(lpToken.mint(msg.sender, amountToMint), "DSA: cannot mint LP tokens");
     }
 
     function withdraw(uint256 _sAmount)
     	public
     	updateExchangeRate
     {
-    	require(lpToken.burn(msg.sender, _sAmount), "DSA: cannot burn LP tokens");
-    	uint256 amountToRelease = _sAmount.mul(exchangeRate).div(denominator);
-    	require(oks.transfer(msg.sender, amountToRelease), "DSA: cannot transfer OKS tokens");
+        require(lpToken.burn(msg.sender, _sAmount), "DSA: cannot burn LP tokens");
+        uint256 amountToRelease = _sAmount.mul(exchangeRate).div(denominator);
+        require(oks.transfer(msg.sender, amountToRelease), "DSA: cannot transfer OKS tokens");
     }
 
     function notifyRewardAmount(uint256 _reward)
@@ -94,6 +94,21 @@ contract DSA is Owned, IRewardDistributionRecipient {
         onlyRewardDistribution
     {
         _notifyRewardAmount(_reward);
+    }
+
+    function claimFees() public {
+        IFeePool(oks.feePool()).claimFees();
+    }
+
+    function withdrawEscrowedReward() public {
+        uint256 balance = oks.balanceOf(address(this));
+        IRewardEscrow(oks.rewardEscrow()).vest();
+        uint256 reward = oks.balanceOf(address(this)).sub(balance);
+        _notifyRewardAmount(reward);
+    }
+
+    function getLPToken() public view returns(address) {
+        return address(lpToken);
     }
 
     function _notifyRewardAmount(uint256 _reward)
@@ -111,20 +126,5 @@ contract DSA is Owned, IRewardDistributionRecipient {
             rewardLeft = m_rewardLeft;
         }
         lastUpdate = block.timestamp;
-    }
-
-    function claimFees() public {
-        IFeePool(oks.feePool()).claimFees();
-    }
-
-    function withdrawEscrowedReward() public {
-        uint256 balance = oks.balanceOf(address(this));
-        IRewardEscrow(oks.rewardEscrow()).vest();
-        uint256 reward = oks.balanceOf(address(this)).sub(balance);
-        _notifyRewardAmount(reward);
-    }
-
-    function getLPToken() public view returns(address) {
-        return address(lpToken);
     }
 }

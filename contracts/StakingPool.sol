@@ -11,7 +11,7 @@ import "./interfaces/IOwned.sol";
 import "./DSA.sol";
 
 
-contract StakingPool is IStakingPool, TokenHandler, DSA{
+contract StakingPool is IStakingPool, TokenHandler, DSA {
 
     using SafeMath for uint256;
     string public name;
@@ -31,8 +31,8 @@ contract StakingPool is IStakingPool, TokenHandler, DSA{
         address _oks,
         uint256 _version,
         address _owner
-    ) 
-        public 
+    )
+        public
         DSA(
             _oks,
             _lpToken,
