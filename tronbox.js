@@ -22,10 +22,16 @@ module.exports = {
             userFeePercentage: 0,
             fullHost: "http://127.0.0.1:" + port,
             network_id: "9"
-        },
-        compilers: {
-            solc: {
-                version: "0.5.10"
+        }
+    },
+    compilers: {
+        solc: {
+            version: '0.5.10',
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 200,
+                }
             }
         }
     }
