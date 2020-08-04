@@ -10,7 +10,7 @@ import "./StakingPool.sol";
 
 contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
-    uint256 internal version = 1;
+    uint256 internal version;
     bool internal upgraded = false;
 
     IStakingPoolFactoryStorage internal factoryStorage;
@@ -25,6 +25,7 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
     {
         require(_factoryStorage != address(0), "StakingPoolFactory: factory storage is zero address");
         factoryStorage = IStakingPoolFactoryStorage(_factoryStorage);
+        version = 1;
     }
 
     modifier isNotUpgraded() {
@@ -138,5 +139,9 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
     function getFactoryStorage() public view returns(address) {
         return address(factoryStorage);
+    }
+
+    function getStakingPools() public view returns(address[] memory) {
+        return factoryStorage.getStakingPools();
     }
 }   

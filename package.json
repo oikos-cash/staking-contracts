@@ -6,8 +6,8 @@
     "test": "test"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/oikos-cash/staking-contracts.git"
+    "type": "git",
+    "url": "https://github.com/oikos-cash/staking-contracts.git"
   },
   "scripts": {
     "test": "run-s test:*",

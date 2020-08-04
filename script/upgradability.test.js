@@ -21,15 +21,15 @@ const StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage")
 contract("StakingPool & Factory Upgradability Tests", (accounts) => {
 
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-    const admin = accounts[0];
-    const user1 = accounts[1];
+    const admin = accounts[1];
+    const user1 = accounts[0];
     const oks = accounts[2];
-    let deployedPools = 0;
 
     beforeEach(async () => {
         this.proxy = await ProxyContract.new(admin, {from: admin});
         this.stakingPoolFactoryStorage = await StakingPoolFactoryStorage.new(oks, {from: admin});
         this.stakingPoolFactory = await StakingPoolFactory.new(this.stakingPoolFactoryStorage.address, this.proxy.address, admin, {from: admin});
+        await this.proxy.setTarget(this.stakingPoolFactory.address, {from: admin});
         await this.stakingPoolFactoryStorage.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
         await this.stakingPoolFactory.acceptOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
     });
@@ -37,36 +37,14 @@ contract("StakingPool & Factory Upgradability Tests", (accounts) => {
     it("Deploying staking pool factory", async () => {
     });
 
-    it("Deploying staking pool from the factory", async () => {
-        let vault = await Vault.new();
-        let lpToken = await LPToken.new("TOKEN","TKN");
-
-        await lpToken.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await vault.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await this.stakingPoolFactory.acceptOwnership(lpToken.address);
-        await this.stakingPoolFactory.acceptOwnership(vault.address);
-
-        await this.stakingPoolFactory.deployStakingPool("OKSPOOL", vault.address, lpToken.address, admin, {from: admin});
-
-        let stakingPools = await this.stakingPoolFactoryStorage.getStakingPools();
-        chai.expect(stakingPools.length).to.be.equal(1);
-               
-        let sp = await StakingPool.at(stakingPools[0]);
-
-        chai.expect(await sp.getVault()).to.be.equal(vault.address);
-        chai.expect(await sp.getLPToken()).to.be.equal(lpToken.address);
-        chai.expect(await vault.owner()).to.be.equal(stakingPools[0]);
-        chai.expect(await lpToken.owner()).to.be.equal(stakingPools[0]);
-    });
-
     it("Upgrading staking pool factory & staking pool", async () => {
-        let vault = await Vault.new();
-        let lpToken = await LPToken.new("TOKEN","TKN");
+        let vault = await Vault.new({from: admin});
+        let lpToken = await LPToken.new("TOKEN", "TKN", {from: admin});
 
         await lpToken.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
         await vault.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await this.stakingPoolFactory.acceptOwnership(lpToken.address);
-        await this.stakingPoolFactory.acceptOwnership(vault.address);
+        await this.stakingPoolFactory.acceptOwnership(lpToken.address, {from: admin});
+        await this.stakingPoolFactory.acceptOwnership(vault.address, {from: admin});
 
         await this.stakingPoolFactory.deployStakingPool("OKSPOOL", vault.address, lpToken.address, admin, {from: admin});
 
