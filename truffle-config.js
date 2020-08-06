@@ -10,9 +10,15 @@ options = {
 
     compilers: {
         solc: {
-            version: "0.5.10", 
-        }
-    }
+            version: "0.5.10",
+            settings: {
+                optimizer: {
+                    enabled: true,
+                    runs: 200,
+                },
+            },
+        },
+    },
 };
 
 let reporterArg = process.argv.indexOf("--report");

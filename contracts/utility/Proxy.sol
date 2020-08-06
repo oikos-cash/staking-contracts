@@ -43,7 +43,10 @@ contract Proxy is Owned {
     Proxyable public target;
     bool public useDELEGATECALL;
 
-    constructor(address _owner) public Owned(_owner) {
+    constructor(address _owner)
+        public
+        Owned(_owner)
+    {
     }
 
     function() external payable {
