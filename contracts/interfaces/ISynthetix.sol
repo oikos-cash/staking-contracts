@@ -11,7 +11,7 @@ interface ISynthetix {
     function transfer(address to, uint256 value) external returns (bool);
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 
-    function feePool() external returns(address);
-    function rewardEscrow() external returns(address);
-    function rewardsDistribution() external returns(address);
+    function feePool() external view returns(address);
+    function rewardEscrow() external view returns(address);
+    function rewardsDistribution() external view returns(address);
 }

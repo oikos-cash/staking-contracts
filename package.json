@@ -17,9 +17,10 @@
     "compile:truffle": "rm -rf ./build/ && truffle compile",
     "compile:tronbox": "rm -rf ./build/ && tronbox compile",
     "lint": "run-s lint:*",
-    "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix",
+    "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives",
+    "lint:jsFix": "eslint . --max-warnings=0 --report-unused-disable-directives --fix",
     "lint:sol": "solium -d contracts/ ",
-    "lint:sol:fix": "solium -d contracts/ --fix"
+    "lint:solFix": "solium -d contracts/ --fix"
   },
   "keywords": [
     "OIKOS",
@@ -28,7 +29,7 @@
     "Solidity",
     "Blockchain"
   ],
-  "author": "Oikos-cash",
+  "author": "OIKOS-CASH",
   "license": "MIT",
   "devDependencies": {
     "@openzeppelin/test-helpers": "^0.5.6",

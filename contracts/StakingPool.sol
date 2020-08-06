@@ -7,6 +7,7 @@ import "./interfaces/IVault.sol";
 import "./interfaces/IProxy.sol";
 import "./interfaces/IStakingPool.sol";
 import "./interfaces/IOwned.sol";
+import "./interfaces/IStakingPoolFactory.sol";
 
 import "./DSA.sol";
 
@@ -17,6 +18,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     string public name;
 
     IVault private vault;
+    address public stakingPoolFactory;
 
     address public oldAddress; // previous staking pool version address, if the address equal zero then it is the initial version
     address public newAddress; // previous staking pool version
@@ -36,15 +38,16 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         DSA(
             _oks,
             _lpToken,
-            _owner,
-            _stakingPoolFactory
+            _owner
         )
     {
+        require(_stakingPoolFactory != address(0), "DSA: staking pool factory is zero address");
         require(_vault != address(0), "StakingPool: vault is zero address");
         name = _name;
         vault = IVault(_vault);
         oldAddress = _oldAddress;
         version = _version;
+        stakingPoolFactory = _stakingPoolFactory;
     }
 
     function() external payable {
@@ -67,7 +70,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     }
 
     modifier isStakingPoolFactory() {
-        require(msg.sender == IProxy(address(stakingPoolFactory)).target(), "StakingPool: only staking pool factory is allowed");
+        require(msg.sender == IProxy(stakingPoolFactory).target(), "StakingPool: only staking pool factory is allowed");
         _;
     }
 

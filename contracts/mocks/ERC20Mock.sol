@@ -13,7 +13,7 @@ contract ERC20Mock is ERC20, Owned {
     string private _symbol;
     uint8  private _decimals;
 
-    constructor(string memory name, string memory symbol) Owned(msg.sender) public {
+    constructor(string memory name, string memory symbol) public {
         _name = name;
         _symbol = symbol;
         _decimals = 18;
@@ -32,16 +32,5 @@ contract ERC20Mock is ERC20, Owned {
 
     function decimals() public view returns (uint8) {
         return _decimals;
-    }
-
-    function mint(address account, uint256 value) public onlyOwner returns(bool) {
-        _mint(account, value);
-        return true;
-
-    }
-
-    function burn(address account, uint256 value) public onlyOwner returns(bool) {
-        _burn(account, value);
-        return true;
     }
 }
