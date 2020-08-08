@@ -7,6 +7,9 @@ import "./interfaces/IOwned.sol";
 import "./utility/Proxyable.sol";
 import "./StakingPool.sol";
 
+import "./Vault.sol";
+import "./LPToken.sol";
+
 
 contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
@@ -35,29 +38,33 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
     function deployStakingPool(
         string memory _name,
-        address _vault,
-        address _lpToken,
+        string memory _tokenName,
+        string memory _tokenSymbol,
         address _owner
     )
     	public
         isNotUpgraded
     	optionalProxy_onlyOwner
     {
+
+        Vault vault = new Vault();
+        LPToken token = new LPToken(_tokenName, _tokenSymbol);
+
         StakingPool stakingPool = StakingPool(
             createStakingPool(
                 _name,
                 address(this),
-                _vault,
-                _lpToken,
+                address(vault),
+                address(token),
                 _owner
             )
         );
 
-        IOwned(_vault).nominateNewOwner(address(stakingPool));
-        IOwned(_lpToken).nominateNewOwner(address(stakingPool));
+        vault.nominateNewOwner(address(stakingPool));
+        token.nominateNewOwner(address(stakingPool));
 
-        stakingPool.acceptOwnership(_vault);
-        stakingPool.acceptOwnership(_lpToken);
+        stakingPool.acceptOwnership(address(vault));
+        stakingPool.acceptOwnership(address(token));
 
         factoryStorage.addStakingPool(address(stakingPool));
     }
@@ -82,13 +89,13 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
     }
 
-    function disableStakingPool(/*address payable _pool*/)
-        public
-        isNotUpgraded
-        optionalProxy_onlyOwner
-    {
-        this;
-    }
+    // function disableStakingPool(/*address payable _pool*/)
+    //     public
+    //     isNotUpgraded
+    //     optionalProxy_onlyOwner
+    // {
+    //     this;
+    // }
 
     function upgradeFactory(address _facotry)
         public

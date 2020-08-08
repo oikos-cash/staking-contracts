@@ -13,15 +13,9 @@ const chai = require("chai");
 chai.use(require("chai-bn")(BN));
 
 const { expect } = require("chai");
+
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 const LPToken = artifacts.require("LPToken");
-
-// const {
-//   shouldBehaveLikeERC20,
-//   shouldBehaveLikeERC20Transfer,
-//   shouldBehaveLikeERC20Approve,
-// } = require('./behavior/ERC20.behavior');
 
 contract("LPToken", (accounts) => {
 

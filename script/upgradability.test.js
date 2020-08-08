@@ -38,18 +38,13 @@ contract("StakingPool & Factory Upgradability Tests", (accounts) => {
     });
 
     it("Upgrading staking pool factory & staking pool", async () => {
-        let vault = await Vault.new({from: admin});
-        let lpToken = await LPToken.new("TOKEN", "TKN", {from: admin});
-
-        await lpToken.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await vault.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await this.stakingPoolFactory.acceptOwnership(lpToken.address, {from: admin});
-        await this.stakingPoolFactory.acceptOwnership(vault.address, {from: admin});
-
-        await this.stakingPoolFactory.deployStakingPool("OKSPOOL", vault.address, lpToken.address, admin, {from: admin});
+        await this.stakingPoolFactory.deployStakingPool("OKSPOOL", "OKSPOOL TKN", "TKN", admin, {from: admin});
 
         let initialStakingPool = await StakingPool.at(await this.stakingPoolFactoryStorage.getStakingPool(0));
         let stakingPoolFactoryV2 = await StakingPoolFactoryV2.new(this.stakingPoolFactoryStorage.address, this.proxy.address, admin, {from: admin});
+
+        let vault = await Vault.at(await initialStakingPool.getVault());
+        let lpToken = await LPToken.at(await initialStakingPool.getLPToken());
 
         await this.stakingPoolFactory.upgradeFactory(stakingPoolFactoryV2.address, {from: admin});
         await stakingPoolFactoryV2.acceptOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
@@ -66,5 +61,6 @@ contract("StakingPool & Factory Upgradability Tests", (accounts) => {
         chai.expect(await upgradedStakingPool.oldAddress()).to.be.equal(initialStakingPool.address);
         chai.expect(await upgradedStakingPool.stakingPoolFactory()).to.be.equal(this.proxy.address);
         chai.expect(await initialStakingPool.newAddress()).to.be.equal(upgradedStakingPool.address);
+        chai.expect(await initialStakingPool.exchangeRate()).to.be.bignumber.equal(await upgradedStakingPool.exchangeRate());
     });
 });

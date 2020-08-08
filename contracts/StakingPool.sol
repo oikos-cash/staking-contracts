@@ -2,7 +2,6 @@ pragma solidity ^0.5.0;
 
 import "./utility/SafeMath.sol";
 import "./utility/TokenHandler.sol";
-
 import "./interfaces/IVault.sol";
 import "./interfaces/IProxy.sol";
 import "./interfaces/IStakingPool.sol";
@@ -41,7 +40,8 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
             _owner
         )
     {
-        require(_stakingPoolFactory != address(0), "DSA: staking pool factory is zero address");
+        require(_stakingPoolFactory != address(0), "StakingPool: staking pool factory is zero address");
+        require(_oldAddress != address(0), "StakingPool: previous pool address is zero address");
         require(_vault != address(0), "StakingPool: vault is zero address");
         name = _name;
         vault = IVault(_vault);
@@ -60,7 +60,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
 
     modifier isUpgraded() {
         require(newAddress != address(0), "StakingPool: pool not upgraded");
-        require(msg.sender == newAddress, "StakingPool: address not allowed");
+        // require(msg.sender == newAddress, "StakingPool: address not allowed");
         _;
     }
 
@@ -70,7 +70,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     }
 
     modifier isStakingPoolFactory() {
-        require(msg.sender == IProxy(stakingPoolFactory).target(), "StakingPool: only staking pool factory is allowed");
+        require(msg.sender == IProxy(stakingPoolFactory).target(), "StakingPool: only staking pool factory is allowed to upgrade");
         _;
     }
 
@@ -90,13 +90,34 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         sp.setExchangeRate(exchangeRate);
     }
 
+    function notifyRewardAmount(uint256 _reward)
+        public
+        isActive
+    {
+        super.notifyRewardAmount(_reward);
+    }
+
+    function stake(uint256 _amount)
+        public
+        isActive
+    {
+        super.stake(_amount);
+    }
+
+    function withdraw(uint256 _sAmount)
+        public
+        isActive
+    {
+        super.withdraw(_sAmount);
+    }
+
     function transferTokenBalance(address _token) public isUpgraded {
         _safeTransfer(_token, newAddress, ILPToken(_token).balanceOf(address(this)));
     }
 
     function transferTrxBalance() public isUpgraded {
-        address payable addr = address(this);
-        addr.transfer(newAddress.balance);
+        address payable addr = address(uint160(newAddress));
+        addr.transfer(address(this).balance);
     }
 
     function acceptOwnership(address _addr) public onlyPreviousVersion {

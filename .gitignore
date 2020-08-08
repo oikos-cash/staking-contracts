@@ -1,8 +1,8 @@
 #
 node_modules
 coverage
-coverage_contracts
-coverage_artifacts
+.coverage_contracts
+.coverage_artifacts
 build
 .env
 coverage.json

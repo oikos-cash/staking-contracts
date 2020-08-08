@@ -1,5 +1,5 @@
 const {
-    BN, 
+    BN,
     time,
     constants,
     expectEvent,
@@ -16,7 +16,7 @@ const RewardEscrowMock = artifacts.require("RewardEscrowMock");
 
 const LPToken = artifacts.require("LPToken");
 const DSA = artifacts.require("DSA");
-const ProxyContract = artifacts.require("Proxy");
+const ProxyContract = artifacts.require("ProxyERC20");
 
 
 contract("DSA", (accounts) => {
@@ -27,8 +27,6 @@ contract("DSA", (accounts) => {
     const user2 = accounts[3];
     const user3 = accounts[5];
     const rewardDistributor = accounts[4];
-
-    let deployedPools = 0;
 
     beforeEach(async () => {
         this.proxy = await ProxyContract.new(admin, {from: admin});
@@ -67,11 +65,11 @@ contract("DSA", (accounts) => {
             "DSA: OKS is zero address"
         );
         await expectRevert(
-            DSA.new(this.oks.address, ZERO_ADDRESS, admin, {from: admin}),
+            DSA.new(this.oksProxy.address, ZERO_ADDRESS, admin, {from: admin}),
             "DSA: LPToken is zero address"
         );
         await expectRevert(
-            DSA.new(this.oks.address, this.lpToken.address, ZERO_ADDRESS, {from: admin}),
+            DSA.new(this.oksProxy.address, this.lpToken.address, ZERO_ADDRESS, {from: admin}),
             "Owned: Owner address cannot be 0"
         );
     });
@@ -133,14 +131,14 @@ contract("DSA", (accounts) => {
         await this.oksProxy.mint(this.dsa.address, rewardAmount, {from: admin});
         await this.dsa.notifyRewardAmount(rewardAmount, {from: rewardDistributor});
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user1});
-        
-        let balanceBefore = await this.oks.balanceOf(user1);
-        
+
+        let balanceBefore = await this.oksProxy.balanceOf(user1);
+
         await this.dsa.stake(stakeAmount, {from: user1});
         await time.increase(8*24*3600);
         await this.dsa.withdraw(await this.lpToken.balanceOf(user1), {from: user1});
 
-        let balanceAfter = await this.oks.balanceOf(user1);
+        let balanceAfter = await this.oksProxy.balanceOf(user1);
         chai.expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(rewardAmount);
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal("0");
     });
@@ -154,9 +152,9 @@ contract("DSA", (accounts) => {
 
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user1});
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user2});
-            
-        let balanceBefore1 = await this.oks.balanceOf(user1);
-        let balanceBefore2 = await this.oks.balanceOf(user2);
+
+        let balanceBefore1 = await this.oksProxy.balanceOf(user1);
+        let balanceBefore2 = await this.oksProxy.balanceOf(user2);
 
         await this.dsa.stake(stakeAmount, {from: user1});
         await this.dsa.stake(stakeAmount, {from: user2});
@@ -166,8 +164,8 @@ contract("DSA", (accounts) => {
         await this.dsa.withdraw(await this.lpToken.balanceOf(user1), {from: user1});
         await this.dsa.withdraw(await this.lpToken.balanceOf(user2), {from: user2});
 
-        let balanceAfter1 = await this.oks.balanceOf(user1);
-        let balanceAfter2 = await this.oks.balanceOf(user2);
+        let balanceAfter1 = await this.oksProxy.balanceOf(user1);
+        let balanceAfter2 = await this.oksProxy.balanceOf(user2);
         chai.expect(balanceAfter1.sub(balanceBefore1)).to.be.bignumber.equal(balanceAfter2.sub(balanceBefore2));
     });
 
@@ -181,8 +179,8 @@ contract("DSA", (accounts) => {
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user1});
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user2});
 
-        let balanceBefore1 = await this.oks.balanceOf(user1);
-        let balanceBefore2 = await this.oks.balanceOf(user2);
+        let balanceBefore1 = await this.oksProxy.balanceOf(user1);
+        let balanceBefore2 = await this.oksProxy.balanceOf(user2);
 
         await this.dsa.stake(stakeAmount, {from: user1});
         await this.dsa.stake(stakeAmount, {from: user2});
@@ -199,9 +197,8 @@ contract("DSA", (accounts) => {
 
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal("0");
 
-        let balanceAfter1 = await this.oks.balanceOf(user1);
-        let balanceAfter2 = await this.oks.balanceOf(user2);
-        
+        let balanceAfter1 = await this.oksProxy.balanceOf(user1);
+        let balanceAfter2 = await this.oksProxy.balanceOf(user2);
         chai.expect(balanceAfter1.sub(balanceBefore1)).to.be.bignumber.closeTo(balanceAfter2.sub(balanceBefore2),"5");
     });
 
@@ -213,9 +210,9 @@ contract("DSA", (accounts) => {
         await this.oksProxy.mint(this.dsa.address, rewardAmount, {from: admin});
         await this.dsa.notifyRewardAmount(rewardAmount, {from: rewardDistributor});
 
-        let balanceBefore1 = await this.oks.balanceOf(user1);
-        let balanceBefore2 = await this.oks.balanceOf(user2);
-        let balanceBefore3 = await this.oks.balanceOf(user3);
+        let balanceBefore1 = await this.oksProxy.balanceOf(user1);
+        let balanceBefore2 = await this.oksProxy.balanceOf(user2);
+        let balanceBefore3 = await this.oksProxy.balanceOf(user3);
 
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user1});
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user2});
@@ -234,9 +231,9 @@ contract("DSA", (accounts) => {
         await this.dsa.withdraw(await this.lpToken.balanceOf(user2), {from: user2});
         await this.dsa.withdraw(await this.lpToken.balanceOf(user3), {from: user3});
 
-        let balanceAfter1 = await this.oks.balanceOf(user1);
-        let balanceAfter2 = await this.oks.balanceOf(user2);
-        let balanceAfter3 = await this.oks.balanceOf(user3);
+        let balanceAfter1 = await this.oksProxy.balanceOf(user1);
+        let balanceAfter2 = await this.oksProxy.balanceOf(user2);
+        let balanceAfter3 = await this.oksProxy.balanceOf(user3);
 
         chai.expect(balanceAfter1.sub(balanceBefore1)).to.be.bignumber.closeTo("4333333333333333300","100000000000000");
         chai.expect(balanceAfter2.sub(balanceBefore2)).to.be.bignumber.closeTo("1666666666666666600","100000000000000");
@@ -246,9 +243,9 @@ contract("DSA", (accounts) => {
     it("Withdraw and distribute escrowed OKS reward", async () => {
         let stakeAmount = new BN(web3.utils.toWei("1"));
 
-        let balanceBefore1 = await this.oks.balanceOf(user1);
-        let balanceBefore2 = await this.oks.balanceOf(user2);
-        let balanceBefore3 = await this.oks.balanceOf(user3);
+        let balanceBefore1 = await this.oksProxy.balanceOf(user1);
+        let balanceBefore2 = await this.oksProxy.balanceOf(user2);
+        let balanceBefore3 = await this.oksProxy.balanceOf(user3);
 
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user1});
         await this.oksProxy.approve(this.dsa.address, stakeAmount, {from: user2});
@@ -272,9 +269,9 @@ contract("DSA", (accounts) => {
         await this.dsa.withdraw(await this.lpToken.balanceOf(user2), {from: user2});
         await this.dsa.withdraw(await this.lpToken.balanceOf(user3), {from: user3});
 
-        let balanceAfter1 = await this.oks.balanceOf(user1);
-        let balanceAfter2 = await this.oks.balanceOf(user2);
-        let balanceAfter3 = await this.oks.balanceOf(user3);
+        let balanceAfter1 = await this.oksProxy.balanceOf(user1);
+        let balanceAfter2 = await this.oksProxy.balanceOf(user2);
+        let balanceAfter3 = await this.oksProxy.balanceOf(user3);
 
         chai.expect(balanceAfter1.sub(balanceBefore1)).to.be.bignumber.closeTo("4333333333333333300","100000000000000");
         chai.expect(balanceAfter2.sub(balanceBefore2)).to.be.bignumber.closeTo("1666666666666666600","100000000000000");

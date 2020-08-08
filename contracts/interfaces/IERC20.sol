@@ -12,4 +12,8 @@ interface IERC20 {
   function approve(address spender, uint256 value) external returns (bool);
   function transferFrom(address from, address to, uint256 value) external returns (bool);
 
+  function name() external view returns(string memory);
+  function symbol() external view returns(string memory);
+  function decimals() external view returns(uint8);
+
 }

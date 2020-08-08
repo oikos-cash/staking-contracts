@@ -13,6 +13,7 @@ chai.use(require("chai-bn")(BN));
 const StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage");
 
 contract("StakingPoolFactoryStorage", (accounts) => {
+    
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const admin = accounts[0];
     const user1 = accounts[1];
