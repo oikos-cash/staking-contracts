@@ -113,7 +113,6 @@ contract DSA is Owned, IRewardDistributionRecipient {
         _notifyRewardAmount(reward);
     }
 
-
     function getLPToken() public view returns(address) {
         return address(lpToken);
     }

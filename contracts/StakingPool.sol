@@ -96,7 +96,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     }
 
     // manager functionsn
-    
+
     /**
      * @notice Issue synths against the stakinPool's OKS.
      * @dev Issuance is only allowed by staking pool's owner.
@@ -119,7 +119,8 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     {
         ISynthetix(oks).issueMaxSynths();
     }
-/**
+
+    /**
      * @notice Function that allows you to exchange synths you hold in one flavour for another.
      * @param _sourceCurrencyKey The source currency you wish to exchange from
      * @param _sourceAmount The amount if the source currency you wish to exchange
