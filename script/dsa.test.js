@@ -253,7 +253,7 @@ contract("DSA", (accounts) => {
 
 
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal("0");
-        await this.dsa.withdrawEscrowedReward();
+        await this.dsa.vest();
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal(web3.utils.toWei("7"));
 
         await this.dsa.stake(stakeAmount, {from: user1});

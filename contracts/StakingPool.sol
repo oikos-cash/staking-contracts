@@ -74,22 +74,6 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         _;
     }
 
-    function getVersion() public view returns(uint256) {
-        return version;
-    }
-
-    function upgrade(address payable _stakingPool) public isStakingPoolFactory {
-        IStakingPool sp = IStakingPool(_stakingPool);
-        require(newAddress == address(0), "StakingPool: contract already upgraded");
-        require(sp.getVersion() > version, "StakingPool: staking pool version has to be higher");
-        newAddress = _stakingPool;
-        IOwned(address(vault)).nominateNewOwner(_stakingPool);
-        IOwned(address(lpToken)).nominateNewOwner(_stakingPool);
-        sp.acceptOwnership(address(vault));
-        sp.acceptOwnership(address(lpToken));
-        sp.setExchangeRate(exchangeRate);
-    }
-
     function notifyRewardAmount(uint256 _reward)
         public
         isActive
@@ -111,6 +95,57 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         super.withdraw(_sAmount);
     }
 
+    // manager functionsn
+    
+    /**
+     * @notice Issue synths against the stakinPool's OKS.
+     * @dev Issuance is only allowed by staking pool's owner.
+     * @param _amount The amount of synths you wish to issue.
+     */
+    function issueSynths(uint256 _amount)
+        public
+        onlyOwner
+    {
+        ISynthetix(oks).issueSynths(_amount);
+    }
+
+    /**
+     * @notice Issue the maximum amount of Synths possible against the stakinPool's OKS.
+     * @dev Issuance is only allowed by staking pool's owner.
+     */
+    function issueMaxSynths()
+        public
+        onlyOwner
+    {
+        ISynthetix(oks).issueMaxSynths();
+    }
+/**
+     * @notice Function that allows you to exchange synths you hold in one flavour for another.
+     * @param _sourceCurrencyKey The source currency you wish to exchange from
+     * @param _sourceAmount The amount if the source currency you wish to exchange
+     * @param _destinationCurrencyKey The destination currency you wish to obtain.
+     */
+    function exchange(bytes32 _sourceCurrencyKey, uint _sourceAmount, bytes32 _destinationCurrencyKey)
+        public
+        onlyOwner
+    {
+        ISynthetix(oks).exchange(_sourceCurrencyKey, _sourceAmount, _destinationCurrencyKey);
+    }
+
+    // upgrade functions
+
+    function upgrade(address payable _stakingPool) public isStakingPoolFactory {
+        IStakingPool sp = IStakingPool(_stakingPool);
+        require(newAddress == address(0), "StakingPool: contract already upgraded");
+        require(sp.getVersion() > version, "StakingPool: staking pool version has to be higher");
+        newAddress = _stakingPool;
+        IOwned(address(vault)).nominateNewOwner(_stakingPool);
+        IOwned(address(lpToken)).nominateNewOwner(_stakingPool);
+        sp.acceptOwnership(address(vault));
+        sp.acceptOwnership(address(lpToken));
+        sp.setExchangeRate(exchangeRate);
+    }
+
     function transferTokenBalance(address _token) public isUpgraded {
         _safeTransfer(_token, newAddress, ILPToken(_token).balanceOf(address(this)));
     }
@@ -128,7 +163,13 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         exchangeRate = _exchangeRate;
     }
 
+    // view functions
+
     function getVault() public view returns(address) {
         return address(vault);
+    }
+
+    function getVersion() public view returns(uint256) {
+        return version;
     }
 }

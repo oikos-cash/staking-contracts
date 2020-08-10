@@ -95,17 +95,24 @@ contract DSA is Owned, IRewardDistributionRecipient {
         _notifyRewardAmount(_reward);
     }
 
+    /**
+    * @notice Claim fees for last period when available from OIKOS FeePool contract.
+    */
     function claimFees() public {
         IFeePool(ISynthetix(IProxy(oks).target()).feePool()).claimFees();
     }
 
-    function withdrawEscrowedReward() public {
+    /**
+     * @notice withdraw any OKS in the staking pool schedule that have vested in OIKOS RewardEscrow contract.
+     */
+    function vest() public {
         ISynthetix oksTarget = ISynthetix(IProxy(oks).target());
         uint256 balance = oksTarget.balanceOf(address(this));
         IRewardEscrow(oksTarget.rewardEscrow()).vest();
         uint256 reward = oksTarget.balanceOf(address(this)).sub(balance);
         _notifyRewardAmount(reward);
     }
+
 
     function getLPToken() public view returns(address) {
         return address(lpToken);

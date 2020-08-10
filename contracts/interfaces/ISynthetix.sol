@@ -1,6 +1,8 @@
 pragma solidity ^0.5.0;
 
 interface ISynthetix {
+    function issueSynths(uint amount) external;
+    function issueMaxSynths() external;
     function exchange(bytes32 sourceCurrencyKey, uint256 sourceAmount, bytes32 destinationCurrencyKey) external returns (bool);
     function collateralisationRatio(address issuer) external view returns (uint256);
     function getSynth(bytes32 currencyKey) external view returns (address);
