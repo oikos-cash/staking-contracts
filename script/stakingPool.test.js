@@ -17,7 +17,7 @@ const RewardEscrowMock = artifacts.require("RewardEscrowMock");
 const Vault = artifacts.require("Vault");
 const LPToken = artifacts.require("LPToken");
 const StakingPool = artifacts.require("StakingPool");
-const ProxyContract = artifacts.require("Proxy");
+const StakingPoolFactoryProxy = artifacts.require("StakingPoolFactoryProxy");
 const ProxyERC20 = artifacts.require("ProxyERC20");
 const StakingPoolFactory = artifacts.require("StakingPoolFactory");
 const StakingPoolFactoryV2 = artifacts.require("StakingPoolFactoryMock");
@@ -27,10 +27,10 @@ contract("StakingPool", (accounts) => {
 
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const admin = accounts[1];
-    const user1 = accounts[2];
-    const oks = accounts[3];
-    const address = accounts[4];
-    const rewardDistributor = accounts[5];
+    const user1 = accounts[0];
+    const fakeUniFactory = accounts[2];
+    const address = accounts[3];
+    const rewardDistributor = accounts[4];
     const version = new BN("1");
 
     beforeEach(async () => {
@@ -48,16 +48,24 @@ contract("StakingPool", (accounts) => {
         await this.oksProxy.mint(this.rewardEscrow.address, web3.utils.toWei("21"), {from: admin});
 
 
-        this.proxy = await ProxyContract.new(admin, {from: admin});
-        this.stakingPoolFactoryStorage = await StakingPoolFactoryStorage.new(this.oksProxy.address, {from: admin});
+        this.proxy = await StakingPoolFactoryProxy.new(admin, {from: admin});
+        this.stakingPoolFactoryStorage = await StakingPoolFactoryStorage.new({from: admin});
+        await this.stakingPoolFactoryStorage.setOKS(this.oksProxy.address, {from: admin});
         this.stakingPoolFactory = await StakingPoolFactory.new(this.stakingPoolFactoryStorage.address, this.proxy.address, admin, {from: admin});
         await this.proxy.setTarget(this.stakingPoolFactory.address, {from: admin});
 
         this.stakingPoolFactoryProxy = await StakingPoolFactory.at(this.proxy.address);
 
         await this.stakingPoolFactoryStorage.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
-        await this.stakingPoolFactoryProxy.acceptOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
-        await this.stakingPoolFactoryProxy.deployStakingPool("OKSPOOL", "OKSPOOL TOKEN", "TKN", admin, {from: admin});
+        await this.stakingPoolFactoryProxy.acceptContractOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
+
+        this.vault = await Vault.new({from: admin});
+        this.token = await LPToken.new("OKSPOOL TOKEN", "TKN", {from: admin});
+        
+        await this.vault.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
+        await this.token.nominateNewOwner(this.stakingPoolFactory.address, {from: admin});
+        await this.stakingPoolFactoryProxy.deployStakingPool("OKSPOOL", this.vault.address, this.token.address, admin, {from: admin});
+
         let stakingPools = await this.stakingPoolFactory.getStakingPools();
         this.stakingPool = await StakingPool.at(stakingPools[0]);
         this.lpToken = await LPToken.at(await this.stakingPool.getLPToken());
@@ -67,7 +75,7 @@ contract("StakingPool", (accounts) => {
     it("Test state variable", async () => {
         chai.expect(await this.stakingPool.getVersion()).to.be.bignumber.equal(version);
         chai.expect(await this.stakingPool.name()).to.be.equal("OKSPOOL");
-        chai.expect(await this.stakingPool.stakingPoolFactory()).to.be.equal(this.stakingPoolFactoryProxy.address);
+        chai.expect(await this.stakingPool.factory()).to.be.equal(this.stakingPoolFactoryProxy.address);
         chai.expect(await this.stakingPool.oldAddress()).to.be.equal(this.stakingPoolFactory.address);
         chai.expect(await this.stakingPool.newAddress()).to.be.equal(ZERO_ADDRESS);
         chai.expect(await this.lpToken.name()).to.be.equal("OKSPOOL TOKEN");
@@ -123,7 +131,7 @@ contract("StakingPool", (accounts) => {
         let stakingPoolFactoryV2 = await StakingPoolFactoryV2.new(this.stakingPoolFactoryStorage.address, this.proxy.address, admin, {from: admin});
         await this.stakingPoolFactoryProxy.upgradeFactory(stakingPoolFactoryV2.address, {from: admin});
         await this.proxy.setTarget(stakingPoolFactoryV2.address, {from: admin});
-        await this.stakingPoolFactoryProxy.acceptOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
+        await this.stakingPoolFactoryProxy.acceptContractOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
         await this.stakingPoolFactoryProxy.upgradeStakingPool(await this.stakingPoolFactoryStorage.getStakingPool(0), {from: admin});
 
         await this.oksProxy.mint(this.stakingPool.address, web3.utils.toWei("1"), {from: admin});
@@ -159,7 +167,7 @@ contract("StakingPool", (accounts) => {
         let stakingPoolFactoryV2 = await StakingPoolFactoryV2.new(this.stakingPoolFactoryStorage.address, this.proxy.address, admin, {from: admin});
         await this.stakingPoolFactoryProxy.upgradeFactory(stakingPoolFactoryV2.address, {from: admin});
         await this.proxy.setTarget(stakingPoolFactoryV2.address, {from: admin});
-        await this.stakingPoolFactoryProxy.acceptOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
+        await this.stakingPoolFactoryProxy.acceptContractOwnership(this.stakingPoolFactoryStorage.address, {from: admin});
         await this.stakingPoolFactoryProxy.upgradeStakingPool(await this.stakingPoolFactoryStorage.getStakingPool(0), {from: admin});
 
         let newStakingPool = await StakingPool.at(await this.stakingPoolFactoryStorage.getStakingPool(0));
@@ -184,7 +192,7 @@ contract("StakingPool", (accounts) => {
             "StakingPool: address not allowed"
         );
         await expectRevert(
-            this.stakingPool.acceptOwnership(ZERO_ADDRESS),
+            this.stakingPool.acceptContractOwnership(ZERO_ADDRESS),
             "StakingPool: address not allowed"
         );
     });

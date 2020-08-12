@@ -20,7 +20,11 @@
     "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives",
     "lint:jsFix": "eslint . --max-warnings=0 --report-unused-disable-directives --fix",
     "lint:sol": "solium -d contracts/ ",
-    "lint:solFix": "solium -d contracts/ --fix"
+    "lint:solFix": "solium -d contracts/ --fix",
+    "deploy:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta",
+    "deploy:mainnet": "rm -rf ./build/ && tronbox deploy --network mainnet",
+    "console:shasta": "tronbox console --network shasta",
+    "console:mainnet": "tronbox console --network mainnet"
   },
   "keywords": [
     "OIKOS",

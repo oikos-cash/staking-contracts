@@ -23,20 +23,18 @@ contract("StakingPoolFactoryStorage", (accounts) => {
     const sp2 = accounts[5];
     const sp3 = accounts[6];
     const rewardDistributor = accounts[7];
+    const fakeUniFactory = accounts[3];
+    const fakeUniFactory2 = accounts[7];
 
     beforeEach(async () => {
-        this.spfs = await StakingPoolFactoryStorage.new(oks, { from: admin });
-    });
-
-    it("Deploy contract with OKS as zero address", async () => {
-        await expectRevert(
-            StakingPoolFactoryStorage.new(ZERO_ADDRESS, { from: admin }),
-            "StakingPoolFactoryStorage: OKS is zero address"
-        );
+        this.spfs = await StakingPoolFactoryStorage.new({ from: admin });
+        await this.spfs.setOKS(oks, {from: admin});
+        await this.spfs.setUniswapFactory(fakeUniFactory, {from: admin});
     });
 
     it("Checking storage initialization", async () => {
         chai.expect(await this.spfs.getOKS()).to.be.equal(oks);
+        chai.expect(await this.spfs.getUniswapFactory()).to.be.equal(fakeUniFactory);
         chai.expect( (await this.spfs.getStakingPools()).length).to.be.equal(0);
     });
 
@@ -57,6 +55,25 @@ contract("StakingPoolFactoryStorage", (accounts) => {
     it("Setting OKS with correct address and owner access", async () => {
         await this.spfs.setOKS(oks2, {from: admin});
         chai.expect(await this.spfs.getOKS()).to.be.equal(oks2);
+    });
+
+    it("Setting Uniswap Factory to zero address", async () => {
+        await expectRevert(
+            this.spfs.setUniswapFactory(ZERO_ADDRESS, {from: admin}),
+            "StakingPoolFactoryStorage: Uniswap factory is zero address"
+        );
+    });
+
+    it("Setting Uniswap Factory with non-owner address", async () => {
+        await expectRevert(
+            this.spfs.setUniswapFactory(fakeUniFactory, {from: user1}),
+            "Owned: Only the contract owner may perform this action"
+        );
+    });
+
+    it("Setting Uniswap Factory with correct address and owner access", async () => {
+        await this.spfs.setOKS(fakeUniFactory2, {from: admin});
+        chai.expect(await this.spfs.getOKS()).to.be.equal(fakeUniFactory2);
     });
 
     it("Adding staking pool with non-owner", async () => {

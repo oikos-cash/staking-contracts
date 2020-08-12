@@ -4,7 +4,7 @@ import "../utility/SafeMath.sol";
 import "../interfaces/IERC20.sol";
 
 
-contract ERC20 is IERC20 {
+contract ERC20 {
     using SafeMath for uint256;
     mapping (address => uint256) internal _balances;
     mapping (address => mapping (address => uint256)) internal _allowed;

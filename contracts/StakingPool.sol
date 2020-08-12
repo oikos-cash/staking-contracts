@@ -2,22 +2,25 @@ pragma solidity ^0.5.0;
 
 import "./utility/SafeMath.sol";
 import "./utility/TokenHandler.sol";
+
 import "./interfaces/IVault.sol";
-import "./interfaces/IProxy.sol";
-import "./interfaces/IStakingPool.sol";
 import "./interfaces/IOwned.sol";
 import "./interfaces/IStakingPoolFactory.sol";
+import "./interfaces/IStakingPoolFactoryStorage.sol";
+import "./interfaces/IUniswapFactory.sol";
+import "./interfaces/IUniswapExchange.sol";
 
 import "./DSA.sol";
 
 
-contract StakingPool is IStakingPool, TokenHandler, DSA {
+contract StakingPool is TokenHandler, DSA {
 
     using SafeMath for uint256;
     string public name;
 
     IVault private vault;
-    address public stakingPoolFactory;
+    address public factory;
+    IStakingPoolFactoryStorage private factoryStorage;
 
     address public oldAddress; // previous staking pool version address, if the address equal zero then it is the initial version
     address public newAddress; // previous staking pool version
@@ -47,7 +50,8 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         vault = IVault(_vault);
         oldAddress = _oldAddress;
         version = _version;
-        stakingPoolFactory = _stakingPoolFactory;
+        factory = _stakingPoolFactory;
+        factoryStorage = IStakingPoolFactoryStorage(IStakingPoolFactory(factory).getFactoryStorage());
     }
 
     function() external payable {
@@ -70,7 +74,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
     }
 
     modifier isStakingPoolFactory() {
-        require(msg.sender == IProxy(stakingPoolFactory).target(), "StakingPool: only staking pool factory is allowed to upgrade");
+        require(msg.sender == IProxy(factory).target(), "StakingPool: only staking pool factory is allowed to upgrade");
         _;
     }
 
@@ -126,24 +130,66 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
      * @param _sourceAmount The amount if the source currency you wish to exchange
      * @param _destinationCurrencyKey The destination currency you wish to obtain.
      */
-    function exchange(bytes32 _sourceCurrencyKey, uint _sourceAmount, bytes32 _destinationCurrencyKey)
+    function synthExchange(bytes32 _sourceCurrencyKey, uint _sourceAmount, bytes32 _destinationCurrencyKey)
         public
         onlyOwner
     {
         ISynthetix(oks).exchange(_sourceCurrencyKey, _sourceAmount, _destinationCurrencyKey);
     }
 
-    // upgrade functions
+    /**
+    * @notice Deposit TRX && Tokens (token) at current ratio to mint UNI tokens in the selected pool.
+    * @dev min_liquidity does nothing when total UNI supply is 0.
+    * @param _token address used in the exchange to add liquidity to.
+    * @param _min_liquidity Minimum number of UNI sender will mint if total UNI supply is greater than 0.
+    * @param _max_tokens Maximum number of tokens deposited. Deposits max amount if total UNI supply is 0.
+    * @return The amount of UNI minted.
+    */
+    function addLiquidity(address _token, uint256 _min_liquidity, uint256 _max_tokens)
+        public
+        payable
+        onlyOwner
+        returns (uint256)
+    {
 
+        IUniswapExchange uniExchange = IUniswapExchange(
+            IUniswapFactory(factoryStorage.getUniswapFactory()).getExchange(_token)
+        );
+        _safeApprove(_token, address(uniExchange), _max_tokens);
+        uint256 deadline = block.timestamp + 10 minutes;
+        return uniExchange.addLiquidity.value(msg.value)(_min_liquidity, _max_tokens, deadline);
+    }
+
+    /**
+    * @dev Burn UNI tokens to withdraw TRX && Tokens at current ratio.
+    * @param _token address used in the exchange to remove liquidity from
+    * @param _amount Amount of UNI burned.
+    * @param _min_trx Minimum TRX withdrawn.
+    * @param _min_tokens Minimum Tokens withdrawn.
+    * @return The amount of TRX && Tokens withdrawn.
+    */
+    function removeLiquidity(address _token, uint256 _amount, uint256 _min_trx, uint256 _min_tokens)
+        public
+        onlyOwner
+        returns (uint256 trxWithdrawn, uint256 tokensWithdraw)
+    {
+        IUniswapExchange uniExchange = IUniswapExchange(
+            IUniswapFactory(factoryStorage.getUniswapFactory()).getExchange(_token)
+        );
+        uint256 deadline = block.timestamp + 10 minutes;
+        (trxWithdrawn, tokensWithdraw) = uniExchange.removeLiquidity(_amount, _min_trx, _min_tokens, deadline);
+    }
+
+    // upgrade functions
     function upgrade(address payable _stakingPool) public isStakingPoolFactory {
-        IStakingPool sp = IStakingPool(_stakingPool);
+        StakingPool sp = StakingPool(_stakingPool);
         require(newAddress == address(0), "StakingPool: contract already upgraded");
         require(sp.getVersion() > version, "StakingPool: staking pool version has to be higher");
         newAddress = _stakingPool;
         IOwned(address(vault)).nominateNewOwner(_stakingPool);
         IOwned(address(lpToken)).nominateNewOwner(_stakingPool);
-        sp.acceptOwnership(address(vault));
-        sp.acceptOwnership(address(lpToken));
+        sp.acceptContractOwnership(address(vault));
+        sp.acceptContractOwnership(address(lpToken));
         sp.setExchangeRate(exchangeRate);
     }
 
@@ -156,7 +202,7 @@ contract StakingPool is IStakingPool, TokenHandler, DSA {
         addr.transfer(address(this).balance);
     }
 
-    function acceptOwnership(address _addr) public onlyPreviousVersion {
+    function acceptContractOwnership(address _addr) public onlyPreviousVersion {
         IOwned(_addr).acceptOwnership();
     }
 

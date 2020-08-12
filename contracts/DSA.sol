@@ -8,15 +8,13 @@ import "./interfaces/IFeePool.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/ILPToken.sol";
 import "./interfaces/ISynthetix.sol";
-import "./interfaces/IRewardDistributionRecipient.sol";
 
 
-contract DSA is Owned, IRewardDistributionRecipient {
+contract DSA is Owned {
 
     using SafeMath for uint256;
     ILPToken internal lpToken;
     address internal oks;
-
 
     uint256 public exchangeRate;
     uint256 internal denominator;
@@ -117,7 +115,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
         return address(lpToken);
     }
 
-    function acceptOwnership(address _addr) public onlyOwner {
+    function acceptContractOwnership(address _addr) public onlyOwner {
         IOwned(_addr).acceptOwnership();
     }
 

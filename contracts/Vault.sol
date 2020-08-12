@@ -4,10 +4,8 @@ import "./utility/ERC20.sol";
 import "./utility/Owned.sol";
 import "./utility/TokenHandler.sol";
 
-import "./interfaces/IVault.sol";
 
-
-contract Vault is IVault, Owned, TokenHandler {
+contract Vault is Owned, TokenHandler {
 
     constructor() Owned(msg.sender) public {
 
