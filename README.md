@@ -55,3 +55,36 @@ To check unit test coverage run the following command:
 $ npm run test:coverage
 ```
 
+### Deployment
+
+Please note that using `StakingPoolFactoryProxy` address is sufficient to get all required information needed for the UI.
+`StakingPoolFactoryProxy` will remain unchanged in the opposite of `StakingPoolFactory` and all the deployed pools that can be upgraded.
+
+#### Shasta
+
+To deploy a demo to shasta network you should first set your private key as environment variable:
+
+```console
+$ export PRIVATE_KEY_SHASTA="put your private key here"
+```
+
+Then run the following command to deploy all necessary contracts & createa test staking pool.
+
+```console
+$ npm run deploy:shasta
+```
+
+#### Shasta Deployed Addresses
+
+- `StakingPoolFactoryProxy`:
+	- (base58) TRb4pHtG8ABTFHb6vT28QSgESGvjtFt8L3
+	- (hex) 41ab5207422bffce8ab715286ae014c9f38f4eaf2e
+- `StakingPoolFactory`:
+	- (base58) TZHneLZLAb1HziXFPDMcoXYt2vYTSogb9x
+	- (hex) 41ffce76c1339ac2fd3d4c9aec80b1acbe9d90788b
+- `StakingPoolFactoryStorage`:
+	- (base58) TU9EyBta7A6AWAPnEzmnF7f1F322H4UENU
+	- (hex) 41c75810fa765751dd4da6d787fb1e8701e23990ac
+- `StakingPool`:
+	- (base58) NQyFiSBphAi2hbcbGGBgw9CYkX4xJk9Qn
+	- (hex) EAe32ab37df06b38aCb23F8771C259f64f8d86Cb

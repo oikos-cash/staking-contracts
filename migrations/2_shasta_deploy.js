@@ -14,7 +14,6 @@ module.exports = async (deployer, network, account) => {
         var oksProxy = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ");
         var swapFactory = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ"); // should get the actual address.
         var owner = tronWeb.address.toHex(account);
-        var poolOwner = tronWeb.address.toHex("TE96UdU5b5RjDXadUBB1gx9A23fseiYseD");
 
         await deployer.deploy(
             StakingPoolFactoryStorage,
@@ -42,7 +41,7 @@ module.exports = async (deployer, network, account) => {
             var stakingPoolFactory = await StakingPoolFactory.deployed();
             await stakingPoolFactoryProxy.setTarget(stakingPoolFactory.address, {from: owner});
             await stakingPoolFactoryStorage.nominateNewOwner(stakingPoolFactory.address, {from: owner});
-            await stakingPoolFactory.acceptOwnership(stakingPoolFactoryStorage.address, {from: owner});
+            await stakingPoolFactory.acceptContractOwnership(stakingPoolFactoryStorage.address, {from: owner});
 
             await deployer.deploy(Vault, {from: owner});
             var lastPromise =  deployer.deploy(LPToken, "STKOKS", "ST1", {from: owner});
@@ -53,7 +52,7 @@ module.exports = async (deployer, network, account) => {
 
             await vault.nominateNewOwner(stakingPoolFactory.address, {from: owner});
             await token.nominateNewOwner(stakingPoolFactory.address, {from: owner});
-            await stakingPoolFactory.deployStakingPool("FIRSTPOOL", vault.address, token.address, poolOwner, {from: owner});
+            await stakingPoolFactory.deployStakingPool("FIRSTPOOL", vault.address, token.address, owner, {from: owner});
             
             console.log("Test staking pools");
             console.log(await stakingPoolFactory.getStakingPools());
