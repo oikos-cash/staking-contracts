@@ -77,14 +77,11 @@ $ npm run deploy:shasta
 #### Shasta Deployed Addresses
 
 - `StakingPoolFactoryProxy`:
-	- (base58) TRb4pHtG8ABTFHb6vT28QSgESGvjtFt8L3
-	- (hex) 41ab5207422bffce8ab715286ae014c9f38f4eaf2e
+	- (base58) [TRb4pHtG8ABTFHb6vT28QSgESGvjtFt8L3](https://shasta.tronscan.org/#/contract/TRb4pHtG8ABTFHb6vT28QSgESGvjtFt8L3/code)
+	- (hex) [41ab5207422bffce8ab715286ae014c9f38f4eaf2e](https://shasta.tronscan.org/#/contract/TRb4pHtG8ABTFHb6vT28QSgESGvjtFt8L3/code)
 - `StakingPoolFactory`:
-	- (base58) TZHneLZLAb1HziXFPDMcoXYt2vYTSogb9x
-	- (hex) 41ffce76c1339ac2fd3d4c9aec80b1acbe9d90788b
+	- (base58) [TZHneLZLAb1HziXFPDMcoXYt2vYTSogb9x](https://shasta.tronscan.org/#/contract/TZHneLZLAb1HziXFPDMcoXYt2vYTSogb9x/code)
+	- (hex) [41ffce76c1339ac2fd3d4c9aec80b1acbe9d90788b](https://shasta.tronscan.org/#/contract/TZHneLZLAb1HziXFPDMcoXYt2vYTSogb9x/code)
 - `StakingPoolFactoryStorage`:
-	- (base58) TU9EyBta7A6AWAPnEzmnF7f1F322H4UENU
-	- (hex) 41c75810fa765751dd4da6d787fb1e8701e23990ac
-- `StakingPool`:
-	- (base58) NQyFiSBphAi2hbcbGGBgw9CYkX4xJk9Qn
-	- (hex) EAe32ab37df06b38aCb23F8771C259f64f8d86Cb
+	- (base58) [TU9EyBta7A6AWAPnEzmnF7f1F322H4UENU](https://shasta.tronscan.org/#/contract/TU9EyBta7A6AWAPnEzmnF7f1F322H4UENU/code)
+	- (hex) [41c75810fa765751dd4da6d787fb1e8701e23990ac](https://shasta.tronscan.org/#/contract/TU9EyBta7A6AWAPnEzmnF7f1F322H4UENU/code)
