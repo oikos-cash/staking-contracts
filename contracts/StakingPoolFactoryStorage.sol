@@ -5,6 +5,7 @@ import "./utility/Owned.sol";
 
 contract StakingPoolFactoryStorage is Owned {
 
+    mapping(address => mapping(bytes4 => bool)) allowedMethods;
     mapping(address => uint256) private stakingPoolIndex;
     address[] private stakingPools;
     address private oks;
@@ -68,6 +69,24 @@ contract StakingPoolFactoryStorage is Owned {
         delete stakingPools[length-1];
         stakingPools.length = length - 1;
         return true;
+    }
+
+    function addMethod(address _contract, bytes4 _methodID)
+        public
+        onlyOwner
+    {
+        allowedMethods[_contract][_methodID] = true;
+    }
+
+    function removeMethod(address _contract, bytes4 _methodID)
+        public
+        onlyOwner
+    {
+        allowedMethods[_contract][_methodID] = false;
+    }
+
+    function isAllowedMethod(address _contract, bytes4 _methodID) public view returns(bool) {
+        return allowedMethods[_contract][_methodID];
     }
 
     function getStakingPools() public view returns(address[] memory) {

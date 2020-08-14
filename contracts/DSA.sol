@@ -69,8 +69,8 @@ contract DSA is Owned {
     }
 
     function stake(uint256 _amount)
-    	public
-    	updateExchangeRate
+        public
+        updateExchangeRate
     {
         ISynthetix(oks).transferFrom(msg.sender,address(this),_amount);
         uint256 amountToMint = _amount.mul(denominator).div(exchangeRate);
@@ -78,8 +78,8 @@ contract DSA is Owned {
     }
 
     function withdraw(uint256 _sAmount)
-    	public
-    	updateExchangeRate
+        public
+        updateExchangeRate
     {
         lpToken.burn(msg.sender, _sAmount);
         uint256 amountToRelease = _sAmount.mul(exchangeRate).div(denominator);

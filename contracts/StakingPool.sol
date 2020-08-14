@@ -55,6 +55,7 @@ contract StakingPool is TokenHandler, DSA {
     }
 
     function() external payable {
+        require(msg.data.length == 0, "Only TRX deposit is allowed");
     }
 
     modifier isActive() {
@@ -180,6 +181,15 @@ contract StakingPool is TokenHandler, DSA {
         (trxWithdrawn, tokensWithdraw) = uniExchange.removeLiquidity(_amount, _min_trx, _min_tokens, deadline);
     }
 
+    function execute(address _contract, bytes memory _data, uint256 _value)
+        public
+        onlyOwner
+    {
+        require(factoryStorage.isAllowedMethod(_contract,getMethodID(_data)), "StakingPool: the method is not allowed for the provided address");
+        (bool success, ) = _contract.call.value(_value)(_data);
+        require(success, "StakingPool: low level call throw");
+    }
+
     // upgrade functions
     function upgrade(address payable _stakingPool) public isStakingPoolFactory {
         StakingPool sp = StakingPool(_stakingPool);
@@ -218,5 +228,9 @@ contract StakingPool is TokenHandler, DSA {
 
     function getVersion() public view returns(uint256) {
         return version;
+    }
+
+    function getMethodID(bytes memory _data) internal pure returns (bytes4) {
+        return (bytes4(_data[0]) | bytes4(_data[1]) >> 8 | bytes4(_data[2]) >> 16 | bytes4(_data[3]) >> 24);
     }
 }

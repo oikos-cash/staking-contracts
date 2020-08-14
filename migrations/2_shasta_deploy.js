@@ -6,11 +6,12 @@ var StakingPoolFactory = artifacts.require("StakingPoolFactory");
 var StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage");
 const TronWeb = require("tronweb");
 
-
 module.exports = async (deployer, network, account) => {
     if(network === "shasta") {
 
         const tronWeb = new TronWeb({fullHost: "https://api.shasta.trongrid.io"}, process.env.PRIVATE_KEY_SHASTA);
+        tronWeb.setPrivateKey(process.env.PRIVATE_KEY_SHASTA);
+        tronWeb.setAddress(account);
         var oksProxy = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ");
         var swapFactory = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ"); // should get the actual address.
         var owner = tronWeb.address.toHex(account);
@@ -54,8 +55,11 @@ module.exports = async (deployer, network, account) => {
             await token.nominateNewOwner(stakingPoolFactory.address, {from: owner});
             await stakingPoolFactory.deployStakingPool("FIRSTPOOL", vault.address, token.address, owner, {from: owner});
             
-            console.log("Test staking pools");
-            console.log(await stakingPoolFactory.getStakingPools());
+            var stakingPools = await stakingPoolFactory.getStakingPools();
+            console.log(stakingPools);
+
+            var spfp = await tronWeb.contract().at(stakingPoolFactoryProxy.address);
+            console.log(await spfp.getStakingPools().call());
             return lastPromise;
         });
     }

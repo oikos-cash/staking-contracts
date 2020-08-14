@@ -15,4 +15,6 @@ interface IStakingPoolFactoryStorage {
     function getStakingPools() external view returns(address[] memory);
     function getStakingPool(uint256 _index) external view returns(address);
     function getStakingPoolIndex(address _pool) external view returns(uint256);
+
+    function isAllowedMethod(address _contract, bytes4 _methodID) external view returns(bool);
 }
