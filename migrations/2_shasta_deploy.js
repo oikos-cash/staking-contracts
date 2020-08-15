@@ -5,15 +5,36 @@ var StakingPoolFactoryProxy = artifacts.require("StakingPoolFactoryProxy");
 var StakingPoolFactory = artifacts.require("StakingPoolFactory");
 var StakingPoolFactoryStorage = artifacts.require("StakingPoolFactoryStorage");
 const TronWeb = require("tronweb");
+const addresses = require("../addresses.js");
 
 module.exports = async (deployer, network, account) => {
-    if(network === "shasta") {
+    if(network === "shasta" || network === "mainnet") {
 
-        const tronWeb = new TronWeb({fullHost: "https://api.shasta.trongrid.io"}, process.env.PRIVATE_KEY_SHASTA);
-        tronWeb.setPrivateKey(process.env.PRIVATE_KEY_SHASTA);
+        var privateKey;
+        var fullHostURL;
+        var oksProxyAddr;
+        var swapFactoryAddr;
+        
+        if(network === "shasta") {
+            privateKey = process.env.PRIVATE_KEY_SHASTA;
+            fullHostURL ="https://api.shasta.trongrid.io";
+            oksProxyAddr = addresses.oikos.SHASTA_ADDRESSES.ProxySynthetix;
+            swapFactoryAddr = addresses.swap.shasta.factory;
+        }
+
+        if(network === "mainnet") {
+            privateKey = process.env.PRIVATE_KEY_MAINNET;
+            fullHostURL ="https://api.trongrid.io";
+            oksProxyAddr = addresses.oikos.MAINNET_ADDRESSES.ProxySynthetix;
+            swapFactoryAddr = addresses.swap.mainnet.factory;
+        }
+
+        const tronWeb = new TronWeb({fullHost: fullHostURL}, privateKey);
+        tronWeb.setPrivateKey(privateKey);
         tronWeb.setAddress(account);
-        var oksProxy = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ");
-        var swapFactory = tronWeb.address.toHex("TSCfE2WrmrpyuK4JLicbJCfXzZnJJ2kdJJ"); // should get the actual address.
+
+        var oksProxy = tronWeb.address.toHex(oksProxyAddr);
+        var swapFactory = tronWeb.address.toHex(swapFactoryAddr); // should get the actual address.
         var owner = tronWeb.address.toHex(account);
 
         await deployer.deploy(
