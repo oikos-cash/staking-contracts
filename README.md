@@ -80,7 +80,7 @@ $ npm run deploy:shasta
 
 ##### Staking Pool Deployment
 
-Once the initial setup done, copy the "StakingPoolFactoryProxy" address and set is as an envirenement variable to be able to run the next step and deploy the staking pool.
+Once the initial setup done, copy the "StakingPoolFactoryProxy" address and set is as an environment variable to be able to run the next step and deploy the staking pool.
 
 ```console
 $ export SHASTA_STAKINGPOOLFACTORY_PROXY="address"
@@ -96,7 +96,7 @@ $ --tokenSymbol "liquidity token symbol" \
 $ --stakingPoolOwner "pool manager address"
 ```
 
-##### Staking Pool Deployment
+##### Staking Pool Upgrade
 
 To upgrade any staking pool, run the following command with the staking pool address as argument.
 
