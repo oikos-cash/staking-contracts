@@ -21,8 +21,16 @@
     "lint:jsFix": "eslint . --max-warnings=0 --report-unused-disable-directives --fix",
     "lint:sol": "solium -d contracts/ ",
     "lint:solFix": "solium -d contracts/ --fix",
-    "deploy:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta",
-    "deploy:mainnet": "rm -rf ./build/ && tronbox deploy --network mainnet",
+
+    "deploy:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --deploy",
+    "deploy:pool:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --deploySP",
+    "upgrade:pool:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --upgradeSP",
+
+    "deploy:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --deploy",
+    "deploy:pool:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --deploySP",
+    "upgrade:pool:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --upgradeSP",
+
+
     "console:shasta": "tronbox console --network shasta",
     "console:mainnet": "tronbox console --network mainnet"
   },

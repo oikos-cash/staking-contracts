@@ -57,9 +57,9 @@ contract StakingPoolFactory is Proxyable {
         address _lpToken,
         address _owner
     )
-    	public
+        public
         isNotUpgraded
-    	optionalProxy_onlyOwner
+        optionalProxy_onlyOwner
     {
         IOwned vault = IOwned(_vault);
         IOwned token = IOwned(_lpToken);
@@ -83,6 +83,27 @@ contract StakingPoolFactory is Proxyable {
         factoryStorage.addStakingPool(address(stakingPool));
     }
 
+    function addStakingPool(
+        address _vault,
+        address _lpToken,
+        address payable _stakingPool
+    )
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        IOwned vault = IOwned(_vault);
+        IOwned token = IOwned(_lpToken);
+        StakingPool stakingPool = StakingPool(_stakingPool);
+        vault.acceptOwnership();
+        token.acceptOwnership();
+        vault.nominateNewOwner(address(stakingPool));
+        token.nominateNewOwner(address(stakingPool));
+        stakingPool.acceptContractOwnership(address(vault));
+        stakingPool.acceptContractOwnership(address(token));
+        factoryStorage.addStakingPool(address(stakingPool));
+    }
+
     function upgradeStakingPool(address payable _pool)
         public
         isNotUpgraded
@@ -99,6 +120,21 @@ contract StakingPoolFactory is Proxyable {
                 oldPool.owner()
             )
         );
+        oldPool.upgrade(address(newPool));
+        require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
+    }
+
+    function replaceStakingPool(
+        address payable _oldPool,
+        address payable _newPool
+    )
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        require(factoryStorage.removeStakingPool(_oldPool), "StakingPoolFactory: pool not deleted from factory storage");
+        StakingPool oldPool = StakingPool(_oldPool);
+        StakingPool newPool = StakingPool(_newPool);
         oldPool.upgrade(address(newPool));
         require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
     }
