@@ -1,17 +1,16 @@
 pragma solidity ^0.5.0;
 
 import "./interfaces/IStakingPoolFactoryStorage.sol";
-import "./interfaces/IStakingPoolFactory.sol";
 import "./interfaces/IOwned.sol";
 
 import "./utility/Proxyable.sol";
 import "./StakingPool.sol";
 
-import "./Vault.sol";
-import "./LPToken.sol";
+import "./interfaces/IVault.sol";
+import "./interfaces/ILPToken.sol";
 
 
-contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
+contract StakingPoolFactory is Proxyable {
 
     uint256 internal version;
     bool internal upgraded = false;
@@ -36,19 +35,36 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         _;
     }
 
+    function setOKS(address _oks)
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        factoryStorage.setOKS(_oks);
+    }
+
+    function setUniswapFactory(address _unifactory)
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        factoryStorage.setUniswapFactory(_unifactory);
+    }
+
     function deployStakingPool(
         string memory _name,
-        string memory _tokenName,
-        string memory _tokenSymbol,
+        address _vault,
+        address _lpToken,
         address _owner
     )
-    	public
+        public
         isNotUpgraded
-    	optionalProxy_onlyOwner
+        optionalProxy_onlyOwner
     {
-
-        Vault vault = new Vault();
-        LPToken token = new LPToken(_tokenName, _tokenSymbol);
+        IOwned vault = IOwned(_vault);
+        IOwned token = IOwned(_lpToken);
+        vault.acceptOwnership();
+        token.acceptOwnership();
 
         StakingPool stakingPool = StakingPool(
             createStakingPool(
@@ -62,10 +78,29 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
 
         vault.nominateNewOwner(address(stakingPool));
         token.nominateNewOwner(address(stakingPool));
+        stakingPool.acceptContractOwnership(address(vault));
+        stakingPool.acceptContractOwnership(address(token));
+        factoryStorage.addStakingPool(address(stakingPool));
+    }
 
-        stakingPool.acceptOwnership(address(vault));
-        stakingPool.acceptOwnership(address(token));
-
+    function addStakingPool(
+        address _vault,
+        address _lpToken,
+        address payable _stakingPool
+    )
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        IOwned vault = IOwned(_vault);
+        IOwned token = IOwned(_lpToken);
+        StakingPool stakingPool = StakingPool(_stakingPool);
+        vault.acceptOwnership();
+        token.acceptOwnership();
+        vault.nominateNewOwner(address(stakingPool));
+        token.nominateNewOwner(address(stakingPool));
+        stakingPool.acceptContractOwnership(address(vault));
+        stakingPool.acceptContractOwnership(address(token));
         factoryStorage.addStakingPool(address(stakingPool));
     }
 
@@ -89,6 +124,21 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
     }
 
+    function replaceStakingPool(
+        address payable _oldPool,
+        address payable _newPool
+    )
+        public
+        isNotUpgraded
+        optionalProxy_onlyOwner
+    {
+        require(factoryStorage.removeStakingPool(_oldPool), "StakingPoolFactory: pool not deleted from factory storage");
+        StakingPool oldPool = StakingPool(_oldPool);
+        StakingPool newPool = StakingPool(_newPool);
+        oldPool.upgrade(address(newPool));
+        require(factoryStorage.addStakingPool(address(newPool)), "StakingPoolFactory: pool not added to factory storage");
+    }
+
     // function disableStakingPool(/*address payable _pool*/)
     //     public
     //     isNotUpgraded
@@ -108,7 +158,7 @@ contract StakingPoolFactory is IStakingPoolFactory, Proxyable {
         upgraded = true;
     }
 
-    function acceptOwnership(address _addr)
+    function acceptContractOwnership(address _addr)
         public
         isNotUpgraded
         optionalProxy_onlyOwner

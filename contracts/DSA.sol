@@ -8,15 +8,13 @@ import "./interfaces/IFeePool.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/ILPToken.sol";
 import "./interfaces/ISynthetix.sol";
-import "./interfaces/IRewardDistributionRecipient.sol";
 
 
-contract DSA is Owned, IRewardDistributionRecipient {
+contract DSA is Owned {
 
     using SafeMath for uint256;
     ILPToken internal lpToken;
     address internal oks;
-
 
     uint256 public exchangeRate;
     uint256 internal denominator;
@@ -71,8 +69,8 @@ contract DSA is Owned, IRewardDistributionRecipient {
     }
 
     function stake(uint256 _amount)
-    	public
-    	updateExchangeRate
+        public
+        updateExchangeRate
     {
         ISynthetix(oks).transferFrom(msg.sender,address(this),_amount);
         uint256 amountToMint = _amount.mul(denominator).div(exchangeRate);
@@ -80,8 +78,8 @@ contract DSA is Owned, IRewardDistributionRecipient {
     }
 
     function withdraw(uint256 _sAmount)
-    	public
-    	updateExchangeRate
+        public
+        updateExchangeRate
     {
         lpToken.burn(msg.sender, _sAmount);
         uint256 amountToRelease = _sAmount.mul(exchangeRate).div(denominator);
@@ -95,11 +93,17 @@ contract DSA is Owned, IRewardDistributionRecipient {
         _notifyRewardAmount(_reward);
     }
 
+    /**
+    * @notice Claim fees for last period when available from OIKOS FeePool contract.
+    */
     function claimFees() public {
         IFeePool(ISynthetix(IProxy(oks).target()).feePool()).claimFees();
     }
 
-    function withdrawEscrowedReward() public {
+    /**
+     * @notice withdraw any OKS in the staking pool schedule that have vested in OIKOS RewardEscrow contract.
+     */
+    function vest() public {
         ISynthetix oksTarget = ISynthetix(IProxy(oks).target());
         uint256 balance = oksTarget.balanceOf(address(this));
         IRewardEscrow(oksTarget.rewardEscrow()).vest();
@@ -111,7 +115,7 @@ contract DSA is Owned, IRewardDistributionRecipient {
         return address(lpToken);
     }
 
-    function acceptOwnership(address _addr) public onlyOwner {
+    function acceptContractOwnership(address _addr) public onlyOwner {
         IOwned(_addr).acceptOwnership();
     }
 

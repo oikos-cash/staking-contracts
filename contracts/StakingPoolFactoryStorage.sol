@@ -1,21 +1,20 @@
 pragma solidity ^0.5.0;
 
 import "./utility/Owned.sol";
-import "./interfaces/IStakingPoolFactoryStorage.sol";
 
 
-contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
+contract StakingPoolFactoryStorage is Owned {
 
+    mapping(address => mapping(bytes4 => bool)) allowedMethods;
     mapping(address => uint256) private stakingPoolIndex;
     address[] private stakingPools;
     address private oks;
+    address private uniswapFactory;
 
-    constructor(address _oks)
+    constructor()
         public
         Owned(msg.sender)
     {
-        require(_oks != address(0), "StakingPoolFactoryStorage: OKS is zero address");
-        oks = _oks;
     }
 
     function setOKS(address _oks)
@@ -26,8 +25,20 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
         oks = _oks;
     }
 
+    function setUniswapFactory(address _uniswapFactory)
+        public
+        onlyOwner
+    {
+        require(_uniswapFactory != address(0), "StakingPoolFactoryStorage: Uniswap factory is zero address");
+        uniswapFactory = _uniswapFactory;
+    }
+
     function getOKS() public view returns(address) {
         return oks;
+    }
+
+    function getUniswapFactory() public view returns(address) {
+        return uniswapFactory;
     }
 
     function addStakingPool(address _pool)
@@ -58,6 +69,24 @@ contract StakingPoolFactoryStorage is IStakingPoolFactoryStorage, Owned {
         delete stakingPools[length-1];
         stakingPools.length = length - 1;
         return true;
+    }
+
+    function addMethod(address _contract, bytes4 _methodID)
+        public
+        onlyOwner
+    {
+        allowedMethods[_contract][_methodID] = true;
+    }
+
+    function removeMethod(address _contract, bytes4 _methodID)
+        public
+        onlyOwner
+    {
+        allowedMethods[_contract][_methodID] = false;
+    }
+
+    function isAllowedMethod(address _contract, bytes4 _methodID) public view returns(bool) {
+        return allowedMethods[_contract][_methodID];
     }
 
     function getStakingPools() public view returns(address[] memory) {

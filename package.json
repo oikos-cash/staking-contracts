@@ -20,7 +20,19 @@
     "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives",
     "lint:jsFix": "eslint . --max-warnings=0 --report-unused-disable-directives --fix",
     "lint:sol": "solium -d contracts/ ",
-    "lint:solFix": "solium -d contracts/ --fix"
+    "lint:solFix": "solium -d contracts/ --fix",
+
+    "deploy:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --deploy",
+    "deploy:pool:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --deploySP",
+    "upgrade:pool:shasta": "rm -rf ./build/ && tronbox deploy --reset --network shasta --upgradeSP",
+
+    "deploy:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --deploy",
+    "deploy:pool:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --deploySP",
+    "upgrade:pool:mainnet": "rm -rf ./build/ && tronbox deploy --reset --network mainnet --upgradeSP",
+
+
+    "console:shasta": "tronbox console --network shasta",
+    "console:mainnet": "tronbox console --network mainnet"
   },
   "keywords": [
     "OIKOS",
@@ -32,6 +44,8 @@
   "author": "OIKOS-CASH",
   "license": "MIT",
   "devDependencies": {
+    "@oikos/oikos": "^0.4.4",
+    "@oikos/swap": "^0.7.7",
     "@openzeppelin/test-helpers": "^0.5.6",
     "babel-eslint": "^10.1.0",
     "bignumber.js": "^9.0.0",

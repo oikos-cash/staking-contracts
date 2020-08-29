@@ -50,7 +50,7 @@ contract("DSA", (accounts) => {
 
         this.dsa = await DSA.new(this.oksProxy.address, this.lpToken.address, admin, {from: admin});
         await this.lpToken.nominateNewOwner(this.dsa.address, {from: admin});
-        await this.dsa.acceptOwnership(this.lpToken.address, {from: admin});
+        await this.dsa.acceptContractOwnership(this.lpToken.address, {from: admin});
 
     });
 
@@ -77,14 +77,14 @@ contract("DSA", (accounts) => {
     it("acceptOwnership by owner", async () => {
         let token = await LPToken.new("TOKEN", "TKN", {from: admin});
         await token.nominateNewOwner(this.dsa.address, {from: admin});
-        await this.dsa.acceptOwnership(token.address, {from: admin});
+        await this.dsa.acceptContractOwnership(token.address, {from: admin});
     });
 
     it("acceptOwnership by non-owner", async () => {
         let token = await LPToken.new("TOKEN", "TKN", {from: admin});
         await token.nominateNewOwner(this.dsa.address, {from: admin});
         await expectRevert(
-            this.dsa.acceptOwnership(token.address, {from: user1}),
+            this.dsa.acceptContractOwnership(token.address, {from: user1}),
             "Owned: Only the contract owner may perform this action"
         );
     });
@@ -253,7 +253,7 @@ contract("DSA", (accounts) => {
 
 
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal("0");
-        await this.dsa.withdrawEscrowedReward();
+        await this.dsa.vest();
         chai.expect(await this.dsa.rewardLeft()).to.be.bignumber.equal(web3.utils.toWei("7"));
 
         await this.dsa.stake(stakeAmount, {from: user1});

@@ -3,10 +3,9 @@ pragma solidity ^0.5.0;
 import "./utility/SafeMath.sol";
 import "./utility/ERC20.sol";
 import "./utility/Owned.sol";
-import "./interfaces/ILPToken.sol";
 
 
-contract LPToken is ILPToken, ERC20, Owned {
+contract LPToken is ERC20, Owned {
 
     using SafeMath for uint256;
 
